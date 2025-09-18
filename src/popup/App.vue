@@ -70,43 +70,81 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import type { Folder, Chat } from "@/shared/types";
+import type {
+  Folder,
+  Chat,
+  ExtensionMessage,
+  ExtensionResponse,
+} from "@/shared/types";
 
 const folders = ref<Folder[]>([]);
 const selectedFolder = ref<string | null>(null);
+
+// Функция для отправки сообщений в background script
+const sendMessage = async <T extends ExtensionResponse>(
+  message: ExtensionMessage
+): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(message, (response: T) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else if (response.error) {
+        reject(new Error(response.error));
+      } else {
+        resolve(response);
+      }
+    });
+  });
+};
 
 onMounted(async () => {
   await loadFolders();
 });
 
 const loadFolders = async () => {
-  const result = await chrome.storage.local.get(["folders"]);
-  folders.value = result.folders || [];
+  try {
+    const response = await sendMessage<{ folders: Folder[] }>({
+      type: "GET_FOLDERS",
+    });
+    folders.value = response.folders || [];
+  } catch (error) {
+    console.error("Ошибка загрузки папок:", error);
+    folders.value = [];
+  }
 };
 
 const createFolder = async () => {
   const name = prompt("Введите название папки:");
   if (!name) return;
 
-  const newFolder: Folder = {
-    id: Date.now().toString(),
-    name: name.trim(),
-    chatIds: [],
-    chatCount: 0,
-  };
-
-  folders.value.push(newFolder);
-  await saveFolders();
+  try {
+    const response = await sendMessage<{ folder: Folder }>({
+      type: "CREATE_FOLDER",
+      name: name.trim(),
+    });
+    folders.value.push(response.folder);
+  } catch (error) {
+    console.error("Ошибка создания папки:", error);
+    alert("Не удалось создать папку");
+  }
 };
 
 const deleteFolder = async (folderId: string) => {
   if (!confirm("Удалить папку? Все чаты будут убраны из неё.")) return;
 
-  folders.value = folders.value.filter((f) => f.id !== folderId);
-  if (selectedFolder.value === folderId) {
-    selectedFolder.value = null;
+  try {
+    await sendMessage({
+      type: "DELETE_FOLDER",
+      folderId,
+    });
+    folders.value = folders.value.filter((f) => f.id !== folderId);
+    if (selectedFolder.value === folderId) {
+      selectedFolder.value = null;
+    }
+  } catch (error) {
+    console.error("Ошибка удаления папки:", error);
+    alert("Не удалось удалить папку");
   }
-  await saveFolders();
 };
 
 const selectFolder = (folderId: string) => {
@@ -114,16 +152,16 @@ const selectFolder = (folderId: string) => {
 };
 
 const getFolderName = (folderId: string) => {
-  const folder = folders.value.find((f) => f.id === folderId);
+  const folder = folders.value.find((f: Folder) => f.id === folderId);
   return folder?.name || "";
 };
 
 const getFolderChats = (folderId: string): Chat[] => {
-  const folder = folders.value.find((f) => f.id === folderId);
+  const folder = folders.value.find((f: Folder) => f.id === folderId);
   if (!folder) return [];
 
   // Здесь нужно будет получать данные чатов из storage
-  return folder.chatIds.map((id) => ({
+  return folder.chatIds.map((id: string) => ({
     id,
     title: `Чат ${id}`, // Временное название
     url: "",
@@ -134,16 +172,24 @@ const getFolderChats = (folderId: string): Chat[] => {
 const removeChatFromFolder = async (chatId: string) => {
   if (!selectedFolder.value) return;
 
-  const folder = folders.value.find((f) => f.id === selectedFolder.value);
-  if (folder) {
-    folder.chatIds = folder.chatIds.filter((id) => id !== chatId);
-    folder.chatCount = folder.chatIds.length;
-    await saveFolders();
-  }
-};
+  try {
+    await sendMessage({
+      type: "REMOVE_CHAT_FROM_FOLDER",
+      chatId,
+      folderId: selectedFolder.value,
+    });
 
-const saveFolders = async () => {
-  await chrome.storage.local.set({ folders: folders.value });
+    const folder = folders.value.find(
+      (f: Folder) => f.id === selectedFolder.value
+    );
+    if (folder) {
+      folder.chatIds = folder.chatIds.filter((id: string) => id !== chatId);
+      folder.chatCount = folder.chatIds.length;
+    }
+  } catch (error) {
+    console.error("Ошибка удаления чата из папки:", error);
+    alert("Не удалось убрать чат из папки");
+  }
 };
 </script>
 

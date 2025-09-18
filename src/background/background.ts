@@ -1,4 +1,9 @@
-import type { Chat, Folder } from "@/shared/types";
+import type {
+  Chat,
+  Folder,
+  ExtensionMessage,
+  ExtensionResponse,
+} from "@/shared/types";
 
 // Background script для управления расширением
 class BackgroundManager {
@@ -65,9 +70,9 @@ class BackgroundManager {
   }
 
   private async handleMessage(
-    message: any,
-    sender: chrome.runtime.MessageSender,
-    sendResponse: (response?: any) => void
+    message: ExtensionMessage,
+    _sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: ExtensionResponse) => void
   ) {
     try {
       switch (message.type) {
@@ -110,12 +115,14 @@ class BackgroundManager {
           break;
 
         default:
-          console.warn("Неизвестный тип сообщения:", message.type);
+          console.warn("Неизвестный тип сообщения:", (message as any).type);
           sendResponse({ error: "Unknown message type" });
       }
     } catch (error) {
       console.error("Ошибка обработки сообщения:", error);
-      sendResponse({ error: error.message });
+      sendResponse({
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   }
 
@@ -148,7 +155,7 @@ class BackgroundManager {
     }
   }
 
-  private async handleTabActivation(activeInfo: chrome.tabs.TabActiveInfo) {
+  private async handleTabActivation(activeInfo: { tabId: number }) {
     // Получаем информацию о вкладке
     const tab = await chrome.tabs.get(activeInfo.tabId);
 
@@ -160,7 +167,7 @@ class BackgroundManager {
 
   private async handleTabUpdate(
     tabId: number,
-    changeInfo: chrome.tabs.TabChangeInfo,
+    changeInfo: { status?: string },
     tab: chrome.tabs.Tab
   ) {
     if (changeInfo.status === "complete" && this.isDeepSeekTab(tab)) {

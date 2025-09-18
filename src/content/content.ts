@@ -1,4 +1,9 @@
-import type { Chat, Folder } from "@/shared/types";
+import type {
+  Chat,
+  Folder,
+  ExtensionMessage,
+  ExtensionResponse,
+} from "@/shared/types";
 
 // Инициализация расширения на странице DeepSeek
 class DeepSeekChatManager {
@@ -39,11 +44,31 @@ class DeepSeekChatManager {
     this.setupNavigationListener();
   }
 
+  // Функция для отправки сообщений в background script
+  private async sendMessage<T extends ExtensionResponse>(
+    message: ExtensionMessage
+  ): Promise<T> {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(message, (response: T) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else if (response.error) {
+          reject(new Error(response.error));
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+
   private async loadFolders() {
     try {
-      const result = await chrome.storage.local.get(["folders"]);
-      this.folders = Array.isArray(result.folders) ? result.folders : [];
+      const response = await this.sendMessage<{ folders: Folder[] }>({
+        type: "GET_FOLDERS",
+      });
+      this.folders = Array.isArray(response.folders) ? response.folders : [];
     } catch (error) {
+      console.error("Ошибка загрузки папок:", error);
       this.folders = [];
     }
   }
@@ -68,11 +93,6 @@ class DeepSeekChatManager {
     } catch (error) {
       return null;
     }
-  }
-
-  private getCookies(): string {
-    // Получаем все cookies для домена
-    return document.cookie;
   }
 
   private async fetchChatData() {
@@ -128,7 +148,7 @@ class DeepSeekChatManager {
       if (data && data.data && Array.isArray(data.data)) {
         this.chatData.clear();
 
-        data.data.forEach((chatItem: any) => {
+        data.data.forEach(async (chatItem: any) => {
           const chat: Chat = {
             id: chatItem.id || chatItem.session_id,
             title: chatItem.title || chatItem.name || "Без названия",
@@ -140,6 +160,16 @@ class DeepSeekChatManager {
           };
 
           this.chatData.set(chat.id, chat);
+
+          // Синхронизируем данные чата с background script
+          try {
+            await this.sendMessage({
+              type: "SYNC_CHAT",
+              chat,
+            });
+          } catch (error) {
+            console.error("Ошибка синхронизации чата:", error);
+          }
         });
 
         // Теперь ищем элементы чатов по полученным данным
@@ -506,42 +536,62 @@ class DeepSeekChatManager {
 
     const isInFolder = folder.chatIds.includes(chatId);
 
-    if (isInFolder) {
-      folder.chatIds = folder.chatIds.filter((id) => id !== chatId);
-    } else {
-      folder.chatIds.push(chatId);
+    try {
+      if (isInFolder) {
+        await this.sendMessage({
+          type: "REMOVE_CHAT_FROM_FOLDER",
+          chatId,
+          folderId,
+        });
+        folder.chatIds = folder.chatIds.filter((id) => id !== chatId);
+      } else {
+        await this.sendMessage({
+          type: "ADD_CHAT_TO_FOLDER",
+          chatId,
+          folderId,
+        });
+        folder.chatIds.push(chatId);
+      }
+
+      folder.chatCount = folder.chatIds.length;
+
+      // Обновляем индикатор на странице
+      this.updateChatIndicator(chatId);
+    } catch (error) {
+      console.error("Ошибка изменения папки чата:", error);
     }
-
-    folder.chatCount = folder.chatIds.length;
-
-    await chrome.storage.local.set({ folders: this.folders });
-
-    // Обновляем индикатор на странице
-    this.updateChatIndicator(chatId);
   }
 
   private async createFolderForChat(chatId: string) {
     const name = prompt("Введите название папки:");
     if (!name) return;
 
-    // Убеждаемся, что folders является массивом
-    if (!Array.isArray(this.folders)) {
-      this.folders = [];
+    try {
+      // Убеждаемся, что folders является массивом
+      if (!Array.isArray(this.folders)) {
+        this.folders = [];
+      }
+
+      const response = await this.sendMessage<{ folder: Folder }>({
+        type: "CREATE_FOLDER",
+        name: name.trim(),
+      });
+
+      // Добавляем чат в новую папку
+      await this.sendMessage({
+        type: "ADD_CHAT_TO_FOLDER",
+        chatId,
+        folderId: response.folder.id,
+      });
+
+      this.folders.push(response.folder);
+
+      // Обновляем индикатор на странице
+      this.updateChatIndicator(chatId);
+    } catch (error) {
+      console.error("Ошибка создания папки:", error);
+      alert("Не удалось создать папку");
     }
-
-    const newFolder: Folder = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      chatIds: [chatId],
-      chatCount: 1,
-      createdAt: new Date(),
-    };
-
-    this.folders.push(newFolder);
-    await chrome.storage.local.set({ folders: this.folders });
-
-    // Обновляем индикатор на странице
-    this.updateChatIndicator(chatId);
   }
 
   private updateChatIndicator(chatId: string) {
