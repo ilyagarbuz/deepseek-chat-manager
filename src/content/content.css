@@ -1,0 +1,205 @@
+/* Стили для DeepSeek Chat Manager */
+
+/* Индикатор папки на чате */
+.dsm-folder-indicator {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #2563eb;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Контекстное меню */
+.dsm-context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10000;
+  min-width: 200px;
+  padding: 8px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dsm-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #374151;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dsm-menu-item:hover {
+  background: #f3f4f6;
+}
+
+.dsm-menu-item.selected {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Стили для элементов чата с папками */
+.dsm-chat-item {
+  position: relative;
+}
+
+.dsm-chat-item.has-folder {
+  border-left: 3px solid #2563eb;
+  padding-left: 8px;
+}
+
+/* Анимации */
+.dsm-folder-indicator {
+  animation: dsm-fadeIn 0.2s ease-in-out;
+}
+
+@keyframes dsm-fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dsm-context-menu {
+  animation: dsm-slideIn 0.15s ease-out;
+}
+
+@keyframes dsm-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .dsm-folder-indicator {
+    font-size: 9px;
+    padding: 1px 4px;
+    max-width: 60px;
+  }
+  
+  .dsm-context-menu {
+    min-width: 180px;
+    font-size: 13px;
+  }
+  
+  .dsm-menu-item {
+    padding: 10px 16px;
+  }
+}
+
+/* Темная тема (если сайт использует темную тему) */
+@media (prefers-color-scheme: dark) {
+  .dsm-context-menu {
+    background: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+  
+  .dsm-menu-item {
+    color: #f9fafb;
+  }
+  
+  .dsm-menu-item:hover {
+    background: #374151;
+  }
+  
+  .dsm-menu-item.selected {
+    background: #1e40af;
+    color: #dbeafe;
+  }
+}
+
+/* Стили для интеграции с DeepSeek */
+.dsm-integration {
+  /* Стили для лучшей интеграции с дизайном DeepSeek */
+}
+
+/* Улучшенные стили для различных состояний */
+.dsm-folder-indicator.folder-work {
+  background: #059669;
+}
+
+.dsm-folder-indicator.folder-personal {
+  background: #dc2626;
+}
+
+.dsm-folder-indicator.folder-archive {
+  background: #6b7280;
+}
+
+.dsm-folder-indicator.folder-important {
+  background: #d97706;
+}
+
+/* Стили для drag & drop (если будет реализован) */
+.dsm-drag-over {
+  background: #eff6ff;
+  border: 2px dashed #2563eb;
+}
+
+.dsm-dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}
+
+/* Стили для уведомлений */
+.dsm-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #10b981;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10001;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  animation: dsm-slideInRight 0.3s ease-out;
+}
+
+@keyframes dsm-slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.dsm-notification.error {
+  background: #ef4444;
+}
+
+.dsm-notification.warning {
+  background: #f59e0b;
+}
