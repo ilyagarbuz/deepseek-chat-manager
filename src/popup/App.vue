@@ -46,14 +46,29 @@
             :key="chat.id"
             class="chat-item"
           >
-            <span class="chat-title">{{ chat.title }}</span>
-            <button
-              @click="removeChatFromFolder(chat.id)"
-              class="btn-remove"
-              title="Убрать из папки"
-            >
-              ×
-            </button>
+            <div class="chat-content" @click="openChat(chat)">
+              <span class="chat-title">{{ chat.title }}</span>
+              <span class="chat-url" v-if="chat.url">{{
+                getShortUrl(chat.url)
+              }}</span>
+            </div>
+            <div class="chat-actions">
+              <button
+                @click.stop="openChatInNewTab(chat)"
+                class="btn-open"
+                title="Открыть в новой вкладке"
+                v-if="chat.url"
+              >
+                ↗
+              </button>
+              <button
+                @click.stop="removeChatFromFolder(chat.id)"
+                class="btn-remove"
+                title="Убрать из папки"
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -160,13 +175,8 @@ const getFolderChats = (folderId: string): Chat[] => {
   const folder = folders.value.find((f: Folder) => f.id === folderId);
   if (!folder) return [];
 
-  // Здесь нужно будет получать данные чатов из storage
-  return folder.chatIds.map((id: string) => ({
-    id,
-    title: `Чат ${id}`, // Временное название
-    url: "",
-    createdAt: new Date(),
-  }));
+  // Возвращаем чаты напрямую из папки
+  return folder.chats;
 };
 
 const removeChatFromFolder = async (chatId: string) => {
@@ -183,12 +193,33 @@ const removeChatFromFolder = async (chatId: string) => {
       (f: Folder) => f.id === selectedFolder.value
     );
     if (folder) {
-      folder.chatIds = folder.chatIds.filter((id: string) => id !== chatId);
-      folder.chatCount = folder.chatIds.length;
+      folder.chats = folder.chats.filter((chat: Chat) => chat.id !== chatId);
+      folder.chatCount = folder.chats.length;
     }
   } catch (error) {
     console.error("Ошибка удаления чата из папки:", error);
     alert("Не удалось убрать чат из папки");
+  }
+};
+
+const openChat = (chat: Chat) => {
+  if (chat.url) {
+    chrome.tabs.create({ url: chat.url });
+  }
+};
+
+const openChatInNewTab = (chat: Chat) => {
+  if (chat.url) {
+    chrome.tabs.create({ url: chat.url });
+  }
+};
+
+const getShortUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.pathname;
+  } catch {
+    return url;
   }
 };
 </script>
@@ -297,12 +328,38 @@ const removeChatFromFolder = async (chatId: string) => {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.chat-item:hover {
+  border-color: #2563eb;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+
+.chat-content {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .chat-title {
-  flex: 1;
   font-size: 13px;
   color: #374151;
+  font-weight: 500;
+}
+
+.chat-url {
+  font-size: 11px;
+  color: #6b7280;
+  font-family: monospace;
+}
+
+.chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .btn {
@@ -343,6 +400,25 @@ const removeChatFromFolder = async (chatId: string) => {
 .btn-delete:hover,
 .btn-remove:hover {
   background: #dc2626;
+}
+
+.btn-open {
+  background: #10b981;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-open:hover {
+  background: #059669;
 }
 
 .footer {

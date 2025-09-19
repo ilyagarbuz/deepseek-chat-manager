@@ -8,7 +8,6 @@ import type {
 // Background script для управления расширением
 class BackgroundManager {
   private folders: Folder[] = [];
-  private chats: Chat[] = [];
 
   constructor() {
     this.init();
@@ -29,12 +28,15 @@ class BackgroundManager {
 
   private async loadData() {
     try {
-      const result = await chrome.storage.local.get(["folders", "chats"]);
+      const result = await chrome.storage.local.get(["folders"]);
       this.folders = result.folders || [];
-      this.chats = result.chats || [];
 
+      const totalChats = this.folders.reduce(
+        (sum, folder) => sum + folder.chats.length,
+        0
+      );
       console.log(
-        `Загружено ${this.folders.length} папок и ${this.chats.length} чатов`
+        `Загружено ${this.folders.length} папок и ${totalChats} чатов`
       );
     } catch (error) {
       console.error("Ошибка загрузки данных:", error);
@@ -80,10 +82,6 @@ class BackgroundManager {
           sendResponse({ folders: this.folders });
           break;
 
-        case "GET_CHATS":
-          sendResponse({ chats: this.chats });
-          break;
-
         case "CREATE_FOLDER":
           const newFolder = await this.createFolder(message.name);
           sendResponse({ folder: newFolder });
@@ -95,23 +93,13 @@ class BackgroundManager {
           break;
 
         case "ADD_CHAT_TO_FOLDER":
-          await this.addChatToFolder(message.chatId, message.folderId);
+          await this.addChatToFolder(message.chat, message.folderId);
           sendResponse({ success: true });
           break;
 
         case "REMOVE_CHAT_FROM_FOLDER":
           await this.removeChatFromFolder(message.chatId, message.folderId);
           sendResponse({ success: true });
-          break;
-
-        case "SYNC_CHAT":
-          await this.syncChat(message.chat);
-          sendResponse({ success: true });
-          break;
-
-        case "GET_CHAT_DATA":
-          const chatData = await this.getChatData(message.chatId);
-          sendResponse({ chat: chatData });
           break;
 
         default:
@@ -134,12 +122,16 @@ class BackgroundManager {
 
     if (changes.folders) {
       this.folders = changes.folders.newValue || [];
-      console.log("Папки обновлены:", this.folders.length);
-    }
-
-    if (changes.chats) {
-      this.chats = changes.chats.newValue || [];
-      console.log("Чаты обновлены:", this.chats.length);
+      const totalChats = this.folders.reduce(
+        (sum, folder) => sum + folder.chats.length,
+        0
+      );
+      console.log(
+        "Папки обновлены:",
+        this.folders.length,
+        "чатов:",
+        totalChats
+      );
     }
   }
 
@@ -195,7 +187,7 @@ class BackgroundManager {
     const defaultFolder: Folder = {
       id: "default",
       name: "Общие чаты",
-      chatIds: [],
+      chats: [],
       chatCount: 0,
       createdAt: new Date(),
     };
@@ -203,7 +195,6 @@ class BackgroundManager {
     this.folders = [defaultFolder];
     await chrome.storage.local.set({
       folders: this.folders,
-      chats: this.chats,
     });
   }
 
@@ -216,7 +207,7 @@ class BackgroundManager {
     const newFolder: Folder = {
       id: Date.now().toString(),
       name: name.trim(),
-      chatIds: [],
+      chats: [],
       chatCount: 0,
       createdAt: new Date(),
     };
@@ -232,16 +223,15 @@ class BackgroundManager {
     await chrome.storage.local.set({ folders: this.folders });
   }
 
-  private async addChatToFolder(
-    chatId: string,
-    folderId: string
-  ): Promise<void> {
+  private async addChatToFolder(chat: Chat, folderId: string): Promise<void> {
     const folder = this.folders.find((f) => f.id === folderId);
     if (!folder) return;
 
-    if (!folder.chatIds.includes(chatId)) {
-      folder.chatIds.push(chatId);
-      folder.chatCount = folder.chatIds.length;
+    // Проверяем, нет ли уже такого чата в папке
+    const existingChat = folder.chats.find((c) => c.id === chat.id);
+    if (!existingChat) {
+      folder.chats.push(chat);
+      folder.chatCount = folder.chats.length;
       await chrome.storage.local.set({ folders: this.folders });
     }
   }
@@ -253,25 +243,9 @@ class BackgroundManager {
     const folder = this.folders.find((f) => f.id === folderId);
     if (!folder) return;
 
-    folder.chatIds = folder.chatIds.filter((id) => id !== chatId);
-    folder.chatCount = folder.chatIds.length;
+    folder.chats = folder.chats.filter((chat) => chat.id !== chatId);
+    folder.chatCount = folder.chats.length;
     await chrome.storage.local.set({ folders: this.folders });
-  }
-
-  private async syncChat(chat: Chat): Promise<void> {
-    const existingIndex = this.chats.findIndex((c) => c.id === chat.id);
-
-    if (existingIndex >= 0) {
-      this.chats[existingIndex] = chat;
-    } else {
-      this.chats.push(chat);
-    }
-
-    await chrome.storage.local.set({ chats: this.chats });
-  }
-
-  private async getChatData(chatId: string): Promise<Chat | null> {
-    return this.chats.find((c) => c.id === chatId) || null;
   }
 
   private setupPeriodicSync() {

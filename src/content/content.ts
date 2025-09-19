@@ -12,6 +12,21 @@ class DeepSeekChatManager {
   private folders: Folder[] = [];
   private chatData: Map<string, Chat> = new Map();
 
+  // Возвращает данные чата из кэша, при отсутствии — создает минимальные из chatId
+  private getOrCreateChatData(chatId: string): Chat {
+    const existing = this.chatData.get(chatId);
+    if (existing) return existing;
+
+    const minimal: Chat = {
+      id: chatId,
+      title: `Чат ${chatId}`,
+      url: `https://chat.deepseek.com/a/chat/s/${chatId}`,
+      createdAt: new Date(),
+    };
+    this.chatData.set(chatId, minimal);
+    return minimal;
+  }
+
   constructor() {
     this.init();
   }
@@ -162,15 +177,7 @@ class DeepSeekChatManager {
 
           this.chatData.set(chat.id, chat);
 
-          // Синхронизируем данные чата с background script
-          try {
-            await this.sendMessage({
-              type: "SYNC_CHAT",
-              chat,
-            });
-          } catch (error) {
-            console.error("Ошибка синхронизации чата:", error);
-          }
+          // Данные чата теперь хранятся только в папках
         });
 
         // Теперь ищем элементы чатов по полученным данным
@@ -399,7 +406,9 @@ class DeepSeekChatManager {
     }
 
     // Проверяем, в какой папке находится чат
-    const folder = this.folders.find((f) => f.chatIds.includes(chatId));
+    const folder = this.folders.find((f) =>
+      f.chats.some((c) => c.id === chatId)
+    );
     if (!folder) return;
 
     // Добавляем индикатор папки
@@ -459,7 +468,7 @@ class DeepSeekChatManager {
 
     // Добавляем опции для каждой папки
     this.folders.forEach((folder) => {
-      const isInFolder = folder.chatIds.includes(chatId);
+      const isInFolder = folder.chats.some((c) => c.id === chatId);
       const item = document.createElement("div");
       item.className = "dsm-menu-item";
       item.textContent = isInFolder ? `✓ ${folder.name}` : folder.name;
@@ -535,7 +544,10 @@ class DeepSeekChatManager {
     const folder = this.folders.find((f) => f.id === folderId);
     if (!folder) return;
 
-    const isInFolder = folder.chatIds.includes(chatId);
+    const chatData = this.getOrCreateChatData(chatId);
+
+    const existingChat = folder.chats.find((c) => c.id === chatId);
+    const isInFolder = !!existingChat;
 
     try {
       if (isInFolder) {
@@ -544,17 +556,17 @@ class DeepSeekChatManager {
           chatId,
           folderId,
         });
-        folder.chatIds = folder.chatIds.filter((id) => id !== chatId);
+        folder.chats = folder.chats.filter((chat) => chat.id !== chatId);
       } else {
         await this.sendMessage({
           type: "ADD_CHAT_TO_FOLDER",
-          chatId,
+          chat: chatData,
           folderId,
         });
-        folder.chatIds.push(chatId);
+        folder.chats.push(chatData);
       }
 
-      folder.chatCount = folder.chatIds.length;
+      folder.chatCount = folder.chats.length;
 
       // Обновляем индикатор на странице
       this.updateChatIndicator(chatId);
@@ -579,13 +591,16 @@ class DeepSeekChatManager {
       });
 
       // Добавляем чат в новую папку
+      const chatData = this.getOrCreateChatData(chatId);
       await this.sendMessage({
         type: "ADD_CHAT_TO_FOLDER",
-        chatId,
+        chat: chatData,
         folderId: response.folder.id,
       });
+      response.folder.chats.push(chatData);
+      response.folder.chatCount = 1;
 
-      this.folders.push(response.folder);
+      // Не пушим локально, дождемся обновления из chrome.storage.onChanged
 
       // Обновляем индикатор на странице
       this.updateChatIndicator(chatId);
