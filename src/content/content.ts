@@ -42,6 +42,7 @@ class DeepSeekChatManager {
     this.addContextMenu();
     this.injectStyles();
     this.setupNavigationListener();
+    this.setupStorageListener();
   }
 
   // Функция для отправки сообщений в background script
@@ -661,6 +662,32 @@ class DeepSeekChatManager {
         this.chatElements.clear();
         this.observeChatList();
       }, 500);
+    });
+  }
+
+  private updateAllChatIndicators() {
+    // Обновляем индикаторы для всех найденных чатов
+    this.chatElements.forEach((_element, chatId) => {
+      this.updateChatIndicator(chatId);
+    });
+  }
+
+  private setupStorageListener() {
+    // Chrome Storage Events
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace !== "local") return;
+
+      if (changes.folders) {
+        console.log("Storage: Обнаружено изменение папок");
+        const newFolders = changes.folders.newValue || [];
+
+        // Проверяем, действительно ли изменились папки
+        if (JSON.stringify(this.folders) !== JSON.stringify(newFolders)) {
+          this.folders = newFolders;
+          this.updateAllChatIndicators();
+          console.log("Storage: Папки обновлены");
+        }
+      }
     });
   }
 
