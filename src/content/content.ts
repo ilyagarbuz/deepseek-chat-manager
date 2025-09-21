@@ -161,10 +161,16 @@ class DeepSeekChatManager {
       const data = await response.json();
 
       // Обрабатываем полученные данные
-      if (data && data.data && Array.isArray(data.data)) {
+      if (
+        data &&
+        data.data &&
+        data.data.biz_data &&
+        data.data.biz_data.chat_sessions &&
+        Array.isArray(data.data.biz_data.chat_sessions)
+      ) {
         this.chatData.clear();
 
-        data.data.forEach(async (chatItem: any) => {
+        data.data.biz_data.chat_sessions.forEach(async (chatItem: any) => {
           const chat: Chat = {
             id: chatItem.id || chatItem.session_id,
             title: chatItem.title || chatItem.name || "Без названия",
