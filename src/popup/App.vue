@@ -48,9 +48,6 @@
           >
             <div class="chat-content" @click="openChat(chat)">
               <span class="chat-title">{{ chat.title }}</span>
-              <span class="chat-url" v-if="chat.url">{{
-                getShortUrl(chat.url)
-              }}</span>
             </div>
             <div class="chat-actions">
               <button
