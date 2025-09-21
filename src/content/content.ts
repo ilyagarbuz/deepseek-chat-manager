@@ -172,13 +172,13 @@ class DeepSeekChatManager {
 
         data.data.biz_data.chat_sessions.forEach(async (chatItem: any) => {
           const chat: Chat = {
-            id: chatItem.id || chatItem.session_id,
-            title: chatItem.title || chatItem.name || "Без названия",
-            url: `/a/chat/s/${chatItem.id || chatItem.session_id}`,
+            id: chatItem.id,
+            title: chatItem.title || "Без названия",
+            url: `/a/chat/s/${chatItem.id}`,
             createdAt: new Date(chatItem.created_at || chatItem.create_time),
             lastMessageAt: chatItem.updated_at
               ? new Date(chatItem.updated_at)
-              : undefined,
+              : new Date(),
           };
 
           this.chatData.set(chat.id, chat);

@@ -51,14 +51,6 @@
             </div>
             <div class="chat-actions">
               <button
-                @click.stop="openChatInNewTab(chat)"
-                class="btn-open"
-                title="Открыть в новой вкладке"
-                v-if="chat.url"
-              >
-                ↗
-              </button>
-              <button
                 @click.stop="removeChatFromFolder(chat.id)"
                 class="btn-remove"
                 title="Убрать из папки"
@@ -201,22 +193,8 @@ const removeChatFromFolder = async (chatId: string) => {
 
 const openChat = (chat: Chat) => {
   if (chat.url) {
-    chrome.tabs.create({ url: chat.url });
-  }
-};
-
-const openChatInNewTab = (chat: Chat) => {
-  if (chat.url) {
-    chrome.tabs.create({ url: chat.url });
-  }
-};
-
-const getShortUrl = (url: string): string => {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.pathname;
-  } catch {
-    return url;
+    const url = `https://chat.deepseek.com${chat.url}`;
+    chrome.tabs.create({ url: url });
   }
 };
 </script>
