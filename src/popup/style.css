@@ -36,8 +36,8 @@ input, textarea, select {
   --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
   /* Light theme colors */
-  --bg-primary: #f8f9fa;
-  --bg-secondary: #ffffff;
+  --bg-primary: #f9fafb;
+  --bg-secondary: #020202;
   --bg-tertiary: #f3f4f6;
   --text-primary: #374151;
   --text-secondary: #6b7280;
