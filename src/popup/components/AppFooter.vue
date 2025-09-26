@@ -1,8 +1,7 @@
 <template>
   <footer class="footer">
     <p class="help-text">
-      Откройте чат на DeepSeek и используйте контекстное меню для добавления в
-      папку
+      Open a chat on DeepSeek and use the context menu to add it to a folder
     </p>
   </footer>
 </template>

@@ -6,7 +6,7 @@ import type {
   ExtensionResponse,
 } from "@/shared/types";
 
-// Background script для управления расширением
+// Background script for extension management
 class BackgroundManager {
   private folders: Folder[] = [];
   private theme: Theme = "system";
@@ -16,15 +16,15 @@ class BackgroundManager {
   }
 
   private async init() {
-    console.log("DeepSeek Chat Manager: Background script инициализирован");
+    console.log("DeepSeek Chat Manager: Background script initialized");
 
-    // Загружаем данные при запуске
+    // Load data on startup
     await this.loadData();
 
-    // Настраиваем слушатели событий
+    // Setup event listeners
     this.setupEventListeners();
 
-    // Настраиваем периодическую синхронизацию
+    // Setup periodic synchronization
     this.setupPeriodicSync();
   }
 
@@ -39,36 +39,36 @@ class BackgroundManager {
         0
       );
       console.log(
-        `Загружено ${this.folders.length} папок и ${totalChats} чатов, тема: ${this.theme}`
+        `Loaded ${this.folders.length} folders and ${totalChats} chats, theme: ${this.theme}`
       );
     } catch (error) {
-      console.error("Ошибка загрузки данных:", error);
+      console.error("Error loading data:", error);
     }
   }
 
   private setupEventListeners() {
-    // Слушаем сообщения от content script и popup
+    // Listen for messages from content script and popup
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       this.handleMessage(message, sender, sendResponse);
-      return true; // Указываем, что ответ будет асинхронным
+      return true; // Indicate that response will be asynchronous
     });
 
-    // Слушаем изменения в storage
+    // Listen for storage changes
     chrome.storage.onChanged.addListener((changes, namespace) => {
       this.handleStorageChange(changes, namespace);
     });
 
-    // Слушаем установку/обновление расширения
+    // Listen for extension installation/update
     chrome.runtime.onInstalled.addListener((details) => {
       this.handleInstall(details);
     });
 
-    // Слушаем активацию вкладки
+    // Listen for tab activation
     chrome.tabs.onActivated.addListener((activeInfo) => {
       this.handleTabActivation(activeInfo);
     });
 
-    // Слушаем обновление вкладки
+    // Listen for tab updates
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       this.handleTabUpdate(tabId, changeInfo, tab);
     });
@@ -115,11 +115,11 @@ class BackgroundManager {
           break;
 
         default:
-          console.warn("Неизвестный тип сообщения:", (message as any).type);
+          console.warn("Unknown message type:", (message as any).type);
           sendResponse({ error: "Unknown message type" });
       }
     } catch (error) {
-      console.error("Ошибка обработки сообщения:", error);
+      console.error("Error processing message:", error);
       sendResponse({
         error: error instanceof Error ? error.message : "Unknown error",
       });
@@ -139,41 +139,41 @@ class BackgroundManager {
         0
       );
       console.log(
-        "Папки обновлены:",
+        "Folders updated:",
         this.folders.length,
-        "чатов:",
+        "chats:",
         totalChats
       );
     }
 
     if (changes.theme) {
       this.theme = changes.theme.newValue || "system";
-      console.log("Тема изменена на:", this.theme);
+      console.log("Theme changed to:", this.theme);
 
-      // Уведомляем все вкладки об изменении темы
+      // Notify all tabs about theme change
       this.notifyTabsAboutThemeChange();
     }
   }
 
   private async handleInstall(details: chrome.runtime.InstalledDetails) {
-    console.log("Расширение установлено/обновлено:", details.reason);
+    console.log("Extension installed/updated:", details.reason);
 
     if (details.reason === "install") {
-      // Первоначальная настройка
+      // Initial setup
       await this.initializeDefaultData();
     } else if (details.reason === "update") {
-      // Обновление - можно добавить миграцию данных
+      // Update - can add data migration
       await this.migrateData();
     }
   }
 
   private async handleTabActivation(activeInfo: { tabId: number }) {
-    // Получаем информацию о вкладке
+    // Get tab information
     const tab = await chrome.tabs.get(activeInfo.tabId);
 
     if (this.isDeepSeekTab(tab)) {
-      console.log("Активирована вкладка DeepSeek");
-      // Можно добавить логику для синхронизации с активной вкладкой
+      console.log("DeepSeek tab activated");
+      // Can add logic for synchronization with active tab
     }
   }
 
@@ -183,17 +183,17 @@ class BackgroundManager {
     tab: chrome.tabs.Tab
   ) {
     if (changeInfo.status === "complete" && this.isDeepSeekTab(tab)) {
-      console.log("DeepSeek страница загружена");
+      console.log("DeepSeek page loaded");
 
-      // Инжектируем content script если нужно
+      // Inject content script if needed
       try {
         await chrome.scripting.executeScript({
           target: { tabId },
           files: ["dist/content.js"],
         });
       } catch (error) {
-        // Content script уже загружен или ошибка инжекции
-        console.log("Content script уже загружен или ошибка:", error);
+        // Content script already loaded or injection error
+        console.log("Content script already loaded or error:", error);
       }
     }
   }
@@ -203,10 +203,10 @@ class BackgroundManager {
   }
 
   private async initializeDefaultData() {
-    // Создаем папку по умолчанию
+    // Create default folder
     const defaultFolder: Folder = {
       id: "default",
-      name: "Общие чаты",
+      name: "General chats",
       chats: [],
       chatCount: 0,
       createdAt: new Date(),
@@ -220,8 +220,8 @@ class BackgroundManager {
   }
 
   private async migrateData() {
-    // Логика миграции данных при обновлении
-    console.log("Миграция данных...");
+    // Data migration logic on update
+    console.log("Migrating data...");
   }
 
   private async createFolder(name: string): Promise<Folder> {
@@ -248,7 +248,7 @@ class BackgroundManager {
     const folder = this.folders.find((f) => f.id === folderId);
     if (!folder) return;
 
-    // Проверяем, нет ли уже такого чата в папке
+    // Check if chat already exists in folder
     const existingChat = folder.chats.find((c) => c.id === chat.id);
     if (!existingChat) {
       folder.chats.push(chat);
@@ -270,24 +270,24 @@ class BackgroundManager {
   }
 
   private setupPeriodicSync() {
-    // Синхронизация каждые 5 минут
+    // Synchronization every 5 minutes
     setInterval(async () => {
       await this.performPeriodicSync();
     }, 5 * 60 * 1000);
   }
 
   private async performPeriodicSync() {
-    console.log("Выполняется периодическая синхронизация...");
+    console.log("Performing periodic sync...");
 
-    // Здесь можно добавить логику для синхронизации с внешними источниками
-    // или очистки устаревших данных
+    // Here you can add logic for synchronization with external sources
+    // or cleanup of outdated data
   }
 
   private async setTheme(theme: Theme): Promise<void> {
     this.theme = theme;
     await chrome.storage.local.set({ theme: this.theme });
 
-    // Уведомляем все вкладки об изменении темы
+    // Notify all tabs about theme change
     this.notifyTabsAboutThemeChange();
   }
 
@@ -303,16 +303,16 @@ class BackgroundManager {
               theme: this.theme,
             });
           } catch (error) {
-            // Content script может быть не загружен
-            console.log("Не удалось отправить сообщение на вкладку", tab.id);
+            // Content script may not be loaded
+            console.log("Failed to send message to tab", tab.id);
           }
         }
       }
     } catch (error) {
-      console.error("Ошибка уведомления вкладок о изменении темы:", error);
+      console.error("Error notifying tabs about theme change:", error);
     }
   }
 }
 
-// Инициализируем background manager
+// Initialize background manager
 new BackgroundManager();

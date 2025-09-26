@@ -7,7 +7,7 @@ import type {
   ExtensionResponse,
 } from "@/shared/types";
 
-// Функция для отправки сообщений в background script
+// Function for sending messages to background script
 const sendMessage = async <T extends ExtensionResponse>(
   message: ExtensionMessage
 ): Promise<T> => {
@@ -35,13 +35,13 @@ export const useFolders = () => {
       });
       folders.value = response.folders || [];
     } catch (error) {
-      console.error("Ошибка загрузки папок:", error);
+      console.error("Error loading folders:", error);
       folders.value = [];
     }
   };
 
   const createFolder = async () => {
-    const name = prompt("Введите название папки:");
+    const name = prompt("Enter folder name:");
     if (!name) return;
 
     try {
@@ -51,13 +51,13 @@ export const useFolders = () => {
       });
       folders.value.push(response.folder);
     } catch (error) {
-      console.error("Ошибка создания папки:", error);
-      alert("Не удалось создать папку");
+      console.error("Error creating folder:", error);
+      alert("Failed to create folder");
     }
   };
 
   const deleteFolder = async (folderId: string) => {
-    if (!confirm("Удалить папку? Все чаты будут убраны из неё.")) return;
+    if (!confirm("Delete folder? All chats will be removed from it.")) return;
 
     try {
       await sendMessage({
@@ -69,8 +69,8 @@ export const useFolders = () => {
         selectedFolder.value = null;
       }
     } catch (error) {
-      console.error("Ошибка удаления папки:", error);
-      alert("Не удалось удалить папку");
+      console.error("Error deleting folder:", error);
+      alert("Failed to delete folder");
     }
   };
 
@@ -87,7 +87,7 @@ export const useFolders = () => {
     const folder = folders.value.find((f: Folder) => f.id === folderId);
     if (!folder) return [];
 
-    // Возвращаем чаты напрямую из папки
+    // Return chats directly from folder
     return folder.chats;
   };
 
@@ -109,8 +109,8 @@ export const useFolders = () => {
         folder.chatCount = folder.chats.length;
       }
     } catch (error) {
-      console.error("Ошибка удаления чата из папки:", error);
-      alert("Не удалось убрать чат из папки");
+      console.error("Error removing chat from folder:", error);
+      alert("Failed to remove chat from folder");
     }
   };
 
@@ -151,7 +151,7 @@ export const useTheme = () => {
       currentTheme.value = response.theme || "system";
       applyTheme(currentTheme.value);
     } catch (error) {
-      console.error("Ошибка загрузки темы:", error);
+      console.error("Error loading theme:", error);
       currentTheme.value = "system";
       applyTheme("system");
     }
@@ -170,7 +170,7 @@ export const useTheme = () => {
       currentTheme.value = nextTheme;
       applyTheme(nextTheme);
     } catch (error) {
-      console.error("Ошибка установки темы:", error);
+      console.error("Error setting theme:", error);
     }
   };
 
@@ -200,13 +200,13 @@ export const useTheme = () => {
   const getThemeTitle = (): string => {
     switch (currentTheme.value) {
       case "light":
-        return "Светлая тема";
+        return "Light theme";
       case "dark":
-        return "Темная тема";
+        return "Dark theme";
       case "system":
-        return "Системная тема";
+        return "System theme";
       default:
-        return "Системная тема";
+        return "System theme";
     }
   };
 

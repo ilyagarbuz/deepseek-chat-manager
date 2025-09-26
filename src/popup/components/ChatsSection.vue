@@ -1,7 +1,7 @@
 <template>
   <div class="chats-section" v-if="selectedFolder">
     <div class="section-header">
-      <h3>Чаты в папке "{{ getFolderName(selectedFolder) }}"</h3>
+      <h3>Chats in folder "{{ getFolderName(selectedFolder) }}"</h3>
     </div>
 
     <div class="chats-list">
@@ -17,7 +17,7 @@
           <button
             @click.stop="$emit('remove-chat', chat.id)"
             class="btn-remove"
-            title="Убрать из папки"
+            title="Remove from folder"
           >
             ×
           </button>
@@ -49,7 +49,7 @@ const getFolderChats = (folderId: string): Chat[] => {
   const folder = props.folders.find((f: Folder) => f.id === folderId);
   if (!folder) return [];
 
-  // Возвращаем чаты напрямую из папки
+  // Return chats directly from folder
   return folder.chats;
 };
 </script>

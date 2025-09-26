@@ -6,7 +6,7 @@ import type {
   ExtensionResponse,
 } from "@/shared/types";
 
-// Инициализация расширения на странице DeepSeek
+// Extension initialization on DeepSeek page
 class DeepSeekChatManager {
   private isInitialized = false;
   private chatElements: Map<string, HTMLElement> = new Map();
@@ -14,14 +14,14 @@ class DeepSeekChatManager {
   private chatData: Map<string, Chat> = new Map();
   private currentTheme: Theme = "system";
 
-  // Возвращает данные чата из кэша, при отсутствии — создает минимальные из chatId
+  // Returns chat data from cache, creates minimal from chatId if missing
   private getOrCreateChatData(chatId: string): Chat {
     const existing = this.chatData.get(chatId);
     if (existing) return existing;
 
     const minimal: Chat = {
       id: chatId,
-      title: `Чат ${chatId}`,
+      title: `Chat ${chatId}`,
       url: `https://chat.deepseek.com/a/chat/s/${chatId}`,
       createdAt: new Date(),
     };
@@ -36,11 +36,11 @@ class DeepSeekChatManager {
   private async init() {
     if (this.isInitialized) return;
 
-    // Ждем загрузки DOM
+    // Wait for DOM to load
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => this.setup());
     } else {
-      // Если DOM уже загружен, ждем немного для SPA
+      // If DOM already loaded, wait a bit for SPA
       setTimeout(() => this.setup(), 100);
     }
 
@@ -51,7 +51,7 @@ class DeepSeekChatManager {
     await this.loadFolders();
     await this.loadTheme();
 
-    // Проверяем наличие токена авторизации
+    // Check for authorization token
     const token = this.getUserToken();
     if (token) {
       this.observeChatList();
@@ -63,7 +63,7 @@ class DeepSeekChatManager {
     this.setupStorageListener();
   }
 
-  // Функция для отправки сообщений в background script
+  // Function for sending messages to background script
   private async sendMessage<T extends ExtensionResponse>(
     message: ExtensionMessage
   ): Promise<T> {
@@ -87,21 +87,21 @@ class DeepSeekChatManager {
       });
       this.folders = Array.isArray(response.folders) ? response.folders : [];
     } catch (error) {
-      console.error("Ошибка загрузки папок:", error);
+      console.error("Error loading folders:", error);
       this.folders = [];
     }
   }
 
   private getUserToken(): string | null {
     try {
-      // Получаем токен из localStorage
+      // Get token from localStorage
       const userTokenData = localStorage.getItem("userToken");
 
       if (!userTokenData) {
         return null;
       }
 
-      // Парсим JSON данные
+      // Parse JSON data
       const tokenObj = JSON.parse(userTokenData);
 
       if (!tokenObj || !tokenObj.value) {
@@ -116,7 +116,7 @@ class DeepSeekChatManager {
 
   private async fetchChatData() {
     try {
-      // Получаем токен из localStorage
+      // Get token from localStorage
       const userToken = this.getUserToken();
       if (!userToken) {
         return;
@@ -128,7 +128,7 @@ class DeepSeekChatManager {
           method: "GET",
           headers: {
             accept: "*/*",
-            "accept-language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+            "accept-language": "en-US,en;q=0.9,ru-RU;q=0.8,ru;q=0.7",
             authorization: `Bearer ${userToken}`,
             priority: "u=1, i",
             referer: "https://chat.deepseek.com/",
@@ -163,7 +163,7 @@ class DeepSeekChatManager {
 
       const data = await response.json();
 
-      // Обрабатываем полученные данные
+      // Process received data
       if (
         data &&
         data.data &&
@@ -176,7 +176,7 @@ class DeepSeekChatManager {
         data.data.biz_data.chat_sessions.forEach(async (chatItem: any) => {
           const chat: Chat = {
             id: chatItem.id,
-            title: chatItem.title || "Без названия",
+            title: chatItem.title || "Untitled",
             url: `/a/chat/s/${chatItem.id}`,
             createdAt: new Date(chatItem.created_at || chatItem.create_time),
             lastMessageAt: chatItem.updated_at
@@ -186,34 +186,34 @@ class DeepSeekChatManager {
 
           this.chatData.set(chat.id, chat);
 
-          // Данные чата теперь хранятся только в папках
+          // Chat data now stored only in folders
         });
 
-        // Теперь ищем элементы чатов по полученным данным
+        // Now search for chat elements by received data
         this.findChatElementsByData();
       }
     } catch (error) {
-      // Ошибка загрузки данных чатов
+      // Error loading chat data
     }
   }
 
   private findChatElementsByData() {
     this.chatData.forEach((chat, chatId) => {
-      // Ищем элемент по URL
+      // Search element by URL
       const elementByUrl = document.querySelector(
         `a[href*="/a/chat/s/${chatId}"]`
       ) as HTMLElement;
 
       if (elementByUrl) {
-        console.log(`✅ Найден чат: "${chat.title}" (ID: ${chatId})`);
+        console.log(`✅ Found chat: "${chat.title}" (ID: ${chatId})`);
         this.processChatElement(elementByUrl, chat);
         return;
       }
 
-      // Ищем элемент по заголовку
+      // Search element by title
       const elementByTitle = this.findElementByTitle(chat.title);
       if (elementByTitle) {
-        console.log(`✅ Найден чат: "${chat.title}" (ID: ${chatId})`);
+        console.log(`✅ Found chat: "${chat.title}" (ID: ${chatId})`);
         this.processChatElement(elementByTitle, chat);
         return;
       }
@@ -221,7 +221,7 @@ class DeepSeekChatManager {
   }
 
   private findElementByTitle(title: string): HTMLElement | null {
-    // Ищем все ссылки на чаты
+    // Search for all chat links
     const chatLinks = document.querySelectorAll('a[href*="/a/chat/s/"]');
 
     for (const link of chatLinks) {
@@ -250,10 +250,10 @@ class DeepSeekChatManager {
   }
 
   private observeChatList() {
-    // Сначала загружаем данные чатов через API
+    // First load chat data via API
     this.fetchChatData();
 
-    // Затем начинаем наблюдение за изменениями DOM
+    // Then start observing DOM changes
     const chatListObserver = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === "childList") {
@@ -262,18 +262,18 @@ class DeepSeekChatManager {
       });
     });
 
-    // Наблюдаем за изменениями в document.body
+    // Observe changes in document.body
     chatListObserver.observe(document.body, {
       childList: true,
       subtree: true,
     });
 
-    // Периодически обновляем данные чатов
+    // Periodically update chat data
     setInterval(() => {
       this.fetchChatData();
-    }, 30000); // Обновляем каждые 30 секунд
+    }, 30000); // Update every 30 seconds
 
-    // Также слушаем изменения в localStorage для обновления токена
+    // Also listen for localStorage changes for token updates
     this.setupTokenListener();
   }
 
@@ -282,12 +282,12 @@ class DeepSeekChatManager {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as HTMLElement;
 
-        // Проверяем, является ли элемент чатом
+        // Check if element is a chat
         if (this.isChatItem(element)) {
           this.processChatItemByElement(element);
         }
 
-        // Проверяем дочерние элементы
+        // Check child elements
         const chatItems = element.querySelectorAll(this.getChatItemSelector());
         chatItems.forEach((item) =>
           this.processChatItemByElement(item as HTMLElement)
@@ -302,12 +302,12 @@ class DeepSeekChatManager {
       return;
     }
 
-    // Проверяем, есть ли данные чата в нашем кэше
+    // Check if chat data exists in our cache
     const chatData = this.chatData.get(chatId);
     if (chatData) {
       this.processChatElement(element, chatData);
     } else {
-      // Если данных нет, создаем временный объект чата
+      // If no data, create temporary chat object
       const tempChat: Chat = {
         id: chatId,
         title: this.getChatTitle(element),
@@ -319,9 +319,9 @@ class DeepSeekChatManager {
   }
 
   private getChatItemSelector(): string {
-    // Селекторы для элементов чата на DeepSeek
+    // Selectors for chat elements on DeepSeek
     return [
-      'a[href*="/a/chat/s/"]', // Основной селектор для чатов DeepSeek
+      'a[href*="/a/chat/s/"]', // Main selector for DeepSeek chats
       '[data-testid="chat-item"]',
       ".chat-item",
       ".conversation-item",
@@ -337,21 +337,21 @@ class DeepSeekChatManager {
   }
 
   private extractChatId(element: HTMLElement): string | null {
-    // Пытаемся извлечь ID чата из URL DeepSeek
+    // Try to extract chat ID from DeepSeek URL
     const href = element.getAttribute("href");
     if (href) {
-      // Паттерн для URL DeepSeek: /a/chat/s/5fb41622-405b-4690-8474-5f4cacb1a242
+      // Pattern for DeepSeek URL: /a/chat/s/5fb41622-405b-4690-8474-5f4cacb1a242
       const deepSeekMatch = href.match(/\/a\/chat\/s\/([a-f0-9-]+)/);
       if (deepSeekMatch) {
-        return deepSeekMatch[1]; // Возвращаем UUID чата
+        return deepSeekMatch[1]; // Return chat UUID
       }
 
-      // Старый паттерн для совместимости
+      // Old pattern for compatibility
       const oldMatch = href.match(/\/chat\/([^\/\?]+)/);
       if (oldMatch) return oldMatch[1];
     }
 
-    // Проверяем data-атрибуты
+    // Check data attributes
     const dataId =
       element.getAttribute("data-chat-id") ||
       element.getAttribute("data-id") ||
@@ -359,7 +359,7 @@ class DeepSeekChatManager {
 
     if (dataId) return dataId;
 
-    // Генерируем ID на основе содержимого (последний резерв)
+    // Generate ID based on content (last resort)
     const title = this.getChatTitle(element);
     if (title) {
       return btoa(encodeURIComponent(title))
@@ -371,20 +371,20 @@ class DeepSeekChatManager {
   }
 
   private getChatTitle(element: HTMLElement): string {
-    // Ищем заголовок чата в различных элементах
+    // Search for chat title in various elements
     const titleSelectors = [
-      // Специфичные селекторы для DeepSeek
+      // Specific selectors for DeepSeek
       '[data-testid="chat-title"]',
       ".chat-title",
       ".conversation-title",
       ".conversation-name",
       ".chat-name",
-      // Общие селекторы
+      // General selectors
       "h3",
       "h4",
       ".title",
       "span[title]",
-      // Ищем в дочерних элементах
+      // Search in child elements
       "div > span",
       "div > div",
       "li > span",
@@ -403,24 +403,24 @@ class DeepSeekChatManager {
       }
     }
 
-    // Если не нашли, используем весь текст элемента, но ограничиваем длину
+    // If not found, use full element text but limit length
     const fullText = element.textContent?.trim() || "";
     return fullText.length > 50 ? fullText.substring(0, 50) + "..." : fullText;
   }
 
   private addFolderIndicator(element: HTMLElement, chatId: string) {
-    // Проверяем, что folders является массивом
+    // Check if folders is an array
     if (!Array.isArray(this.folders)) {
       return;
     }
 
-    // Проверяем, в какой папке находится чат
+    // Check which folder the chat is in
     const folder = this.folders.find((f) =>
       f.chats.some((c) => c.id === chatId)
     );
     if (!folder) return;
 
-    // Добавляем индикатор папки
+    // Add folder indicator
     const indicator = document.createElement("div");
     indicator.className = "dsm-folder-indicator";
     indicator.textContent = folder.name;
@@ -449,7 +449,7 @@ class DeepSeekChatManager {
   }
 
   private async showContextMenu(event: MouseEvent, chatId: string) {
-    // Удаляем существующее меню
+    // Remove existing menu
     const existingMenu = document.querySelector(".dsm-context-menu");
     if (existingMenu) {
       existingMenu.remove();
@@ -470,12 +470,12 @@ class DeepSeekChatManager {
       padding: 8px 0;
     `;
 
-    // Проверяем, что folders является массивом
+    // Check if folders is an array
     if (!Array.isArray(this.folders)) {
       return;
     }
 
-    // Добавляем опции для каждой папки
+    // Add options for each folder
     this.folders.forEach((folder) => {
       const isInFolder = folder.chats.some((c) => c.id === chatId);
       const item = document.createElement("div");
@@ -509,10 +509,10 @@ class DeepSeekChatManager {
       menu.appendChild(item);
     });
 
-    // Добавляем опцию "Создать папку"
+    // Add "Create folder" option
     const createItem = document.createElement("div");
     createItem.className = "dsm-menu-item";
-    createItem.textContent = "+ Создать папку";
+    createItem.textContent = "+ Create folder";
     createItem.style.cssText = `
       padding: 8px 16px;
       cursor: pointer;
@@ -531,7 +531,7 @@ class DeepSeekChatManager {
 
     document.body.appendChild(menu);
 
-    // Закрываем меню при клике вне его
+    // Close menu when clicking outside
     const closeMenu = (e: MouseEvent) => {
       if (!menu.contains(e.target as Node)) {
         menu.remove();
@@ -545,7 +545,7 @@ class DeepSeekChatManager {
   }
 
   private async toggleChatInFolder(chatId: string, folderId: string) {
-    // Проверяем, что folders является массивом
+    // Check if folders is an array
     if (!Array.isArray(this.folders)) {
       return;
     }
@@ -577,19 +577,19 @@ class DeepSeekChatManager {
 
       folder.chatCount = folder.chats.length;
 
-      // Обновляем индикатор на странице
+      // Update indicator on page
       this.updateChatIndicator(chatId);
     } catch (error) {
-      console.error("Ошибка изменения папки чата:", error);
+      console.error("Error changing chat folder:", error);
     }
   }
 
   private async createFolderForChat(chatId: string) {
-    const name = prompt("Введите название папки:");
+    const name = prompt("Enter folder name:");
     if (!name) return;
 
     try {
-      // Убеждаемся, что folders является массивом
+      // Ensure folders is an array
       if (!Array.isArray(this.folders)) {
         this.folders = [];
       }
@@ -599,7 +599,7 @@ class DeepSeekChatManager {
         name: name.trim(),
       });
 
-      // Добавляем чат в новую папку
+      // Add chat to new folder
       const chatData = this.getOrCreateChatData(chatId);
       await this.sendMessage({
         type: "ADD_CHAT_TO_FOLDER",
@@ -609,13 +609,13 @@ class DeepSeekChatManager {
       response.folder.chats.push(chatData);
       response.folder.chatCount = 1;
 
-      // Не пушим локально, дождемся обновления из chrome.storage.onChanged
+      // Don't push locally, wait for update from chrome.storage.onChanged
 
-      // Обновляем индикатор на странице
+      // Update indicator on page
       this.updateChatIndicator(chatId);
     } catch (error) {
-      console.error("Ошибка создания папки:", error);
-      alert("Не удалось создать папку");
+      console.error("Error creating folder:", error);
+      alert("Failed to create folder");
     }
   }
 
@@ -623,30 +623,30 @@ class DeepSeekChatManager {
     const element = this.chatElements.get(chatId);
     if (!element) return;
 
-    // Удаляем старый индикатор
+    // Remove old indicator
     const oldIndicator = element.querySelector(".dsm-folder-indicator");
     if (oldIndicator) {
       oldIndicator.remove();
     }
 
-    // Добавляем новый индикатор (только если folders является массивом)
+    // Add new indicator (only if folders is an array)
     if (Array.isArray(this.folders)) {
       this.addFolderIndicator(element, chatId);
     }
   }
 
   private addContextMenu() {
-    // Добавляем глобальное контекстное меню для создания папок
+    // Add global context menu for creating folders
     document.addEventListener("contextmenu", (e) => {
       const target = e.target as HTMLElement;
       if (target.closest(".dsm-context-menu")) return;
 
-      // Можно добавить глобальные опции меню здесь
+      // Can add global menu options here
     });
   }
 
   private setupTokenListener() {
-    // Отслеживаем изменения в localStorage для токена
+    // Track localStorage changes for token
     const originalSetItem = localStorage.setItem;
     const originalRemoveItem = localStorage.removeItem;
 
@@ -660,27 +660,27 @@ class DeepSeekChatManager {
   }
 
   private setupNavigationListener() {
-    // Отслеживаем изменения URL для SPA навигации
+    // Track URL changes for SPA navigation
     let currentUrl = window.location.href;
 
     const checkUrlChange = () => {
       if (window.location.href !== currentUrl) {
         currentUrl = window.location.href;
 
-        // Очищаем старые элементы
+        // Clear old elements
         this.chatElements.clear();
 
-        // Ждем немного и переинициализируем
+        // Wait a bit and reinitialize
         setTimeout(() => {
           this.observeChatList();
         }, 1000);
       }
     };
 
-    // Проверяем изменения URL каждые 500мс
+    // Check URL changes every 500ms
     setInterval(checkUrlChange, 500);
 
-    // Также слушаем события popstate для навигации назад/вперед
+    // Also listen for popstate events for back/forward navigation
     window.addEventListener("popstate", () => {
       setTimeout(() => {
         this.chatElements.clear();
@@ -690,7 +690,7 @@ class DeepSeekChatManager {
   }
 
   private updateAllChatIndicators() {
-    // Обновляем индикаторы для всех найденных чатов
+    // Update indicators for all found chats
     this.chatElements.forEach((_element, chatId) => {
       this.updateChatIndicator(chatId);
     });
@@ -702,34 +702,34 @@ class DeepSeekChatManager {
       if (namespace !== "local") return;
 
       if (changes.folders) {
-        console.log("Storage: Обнаружено изменение папок");
+        console.log("Storage: Detected folder changes");
         const newFolders = changes.folders.newValue || [];
 
-        // Проверяем, действительно ли изменились папки
+        // Check if folders really changed
         if (JSON.stringify(this.folders) !== JSON.stringify(newFolders)) {
           this.folders = newFolders;
           this.updateAllChatIndicators();
-          console.log("Storage: Папки обновлены");
+          console.log("Storage: Folders updated");
         }
       }
 
       if (changes.theme) {
-        console.log("Storage: Обнаружено изменение темы");
+        console.log("Storage: Detected theme change");
         const newTheme = changes.theme.newValue || "system";
         if (this.currentTheme !== newTheme) {
           this.currentTheme = newTheme;
           this.applyTheme(newTheme);
-          console.log("Storage: Тема обновлена на:", newTheme);
+          console.log("Storage: Theme updated to:", newTheme);
         }
       }
     });
 
-    // Слушаем сообщения от background script
+    // Listen for messages from background script
     chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
       if (message.type === "THEME_CHANGED") {
         this.currentTheme = message.theme;
         this.applyTheme(message.theme);
-        console.log("Получено сообщение об изменении темы:", message.theme);
+        console.log("Received theme change message:", message.theme);
       }
     });
   }
@@ -752,7 +752,7 @@ class DeepSeekChatManager {
     document.head.appendChild(style);
   }
 
-  // Методы для работы с темами
+  // Methods for working with themes
   private async loadTheme(): Promise<void> {
     try {
       const response = await this.sendMessage<{ theme: Theme }>({
@@ -761,7 +761,7 @@ class DeepSeekChatManager {
       this.currentTheme = response.theme || "system";
       this.applyTheme(this.currentTheme);
     } catch (error) {
-      console.error("Ошибка загрузки темы:", error);
+      console.error("Error loading theme:", error);
       this.currentTheme = "system";
       this.applyTheme("system");
     }
@@ -778,5 +778,5 @@ class DeepSeekChatManager {
   }
 }
 
-// Инициализируем менеджер чатов
+// Initialize chat manager
 new DeepSeekChatManager();

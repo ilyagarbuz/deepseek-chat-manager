@@ -1,9 +1,9 @@
 <template>
   <div class="folders-section">
     <div class="section-header">
-      <h2>Папки</h2>
+      <h2>Folders</h2>
       <button @click="$emit('create-folder')" class="btn btn-primary">
-        + Создать папку
+        + Create folder
       </button>
     </div>
 
@@ -20,7 +20,7 @@
         <button
           @click.stop="$emit('delete-folder', folder.id)"
           class="btn-delete"
-          title="Удалить папку"
+          title="Delete folder"
         >
           ×
         </button>

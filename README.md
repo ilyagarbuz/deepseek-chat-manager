@@ -1,135 +1,135 @@
 # DeepSeek Chat Manager
 
-Браузерное расширение для Google Chrome, которое добавляет возможность группировки чатов DeepSeek по папкам.
+A Google Chrome browser extension that adds the ability to organize DeepSeek chats into folders.
 
-## Возможности
+## Features
 
-- 📁 Создание и управление папками для чатов
-- 🏷️ Группировка чатов по темам и проектам
-- 🖱️ Простое добавление чатов в папки через контекстное меню
-- 💾 Автоматическое сохранение настроек
-- 🎨 Современный интерфейс на Vue.js
-- 🔗 Интеграция с API DeepSeek для надежного определения чатов
-- 🔐 Автоматическая авторизация через Bearer токен
-- ⚡ Поддержка SPA навигации и асинхронной загрузки контента
+- 📁 Create and manage chat folders
+- 🏷️ Group chats by topics and projects
+- 🖱️ Easy chat addition to folders via context menu
+- 💾 Automatic settings persistence
+- 🎨 Modern Vue.js interface
+- 🔗 DeepSeek API integration for reliable chat detection
+- 🔐 Automatic authorization via Bearer token
+- ⚡ SPA navigation and asynchronous content loading support
 
-## Установка
+## Installation
 
-### Для разработки
+### For Development
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
 
 ```bash
 git clone <repository-url>
 cd deepseek_manager_extension
 ```
 
-2. Установите зависимости:
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Соберите расширение:
+3. Build the extension:
 
 ```bash
 npm run build
 ```
 
-4. Загрузите расширение в Chrome:
-   - Откройте `chrome://extensions/`
-   - Включите "Режим разработчика"
-   - Нажмите "Загрузить распакованное расширение"
-   - Выберите папку `dist`
+4. Load the extension in Chrome:
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked extension"
+   - Select the `dist` folder
 
-### Для продакшена
+### For Production
 
-1. Соберите расширение:
+1. Build the extension:
 
 ```bash
 npm run build
 ```
 
-2. Создайте архив:
+2. Create archive:
 
 ```bash
 npm run package
 ```
 
-3. Загрузите файл `deepseek-manager-extension.zip` в Chrome Web Store
+3. Upload the `deepseek-manager-extension.zip` file to Chrome Web Store
 
-## Использование
+## Usage
 
-1. Откройте [DeepSeek Chat](https://chat.deepseek.com/) и авторизуйтесь
-2. Кликните на иконку расширения в панели инструментов
-3. Создайте папки для организации чатов
-4. Правый клик на чате → выберите папку для добавления
-5. Чаты с папками будут отмечены цветными индикаторами
+1. Open [DeepSeek Chat](https://chat.deepseek.com/) and log in
+2. Click the extension icon in the toolbar
+3. Create folders to organize chats
+4. Right-click on a chat → select folder to add it to
+5. Chats with folders will be marked with colored indicators
 
-### Требования
+### Requirements
 
-- Авторизация на DeepSeek (расширение автоматически получает токен)
-- Chrome браузер с поддержкой Manifest V3
+- DeepSeek authorization (extension automatically gets token)
+- Chrome browser with Manifest V3 support
 
-## Структура проекта
+## Project Structure
 
 ```
 src/
-├── popup/           # Интерфейс расширения (Vue.js)
+├── popup/           # Extension interface (Vue.js)
 │   ├── App.vue
 │   ├── main.ts
 │   └── style.css
-├── content/         # Content script для взаимодействия с сайтом
+├── content/         # Content script for website interaction
 │   ├── content.ts
 │   └── content.css
 ├── background/      # Background script
 │   └── background.ts
-└── shared/          # Общие типы и утилиты
+└── shared/          # Common types and utilities
     └── types.ts
 ```
 
-## Технологии
+## Technologies
 
-- **Vue.js 3** - для интерфейса popup
-- **TypeScript** - для типизации
-- **Vite** - для сборки
-- **Chrome Extensions API** - для интеграции с браузером
+- **Vue.js 3** - for popup interface
+- **TypeScript** - for type safety
+- **Vite** - for building
+- **Chrome Extensions API** - for browser integration
 
-## Разработка
+## Development
 
-### Доступные команды
+### Available Commands
 
-- `npm run dev` - сборка в режиме разработки с отслеживанием изменений
-- `npm run build` - сборка для продакшена
-- `npm run clean` - очистка папки dist
-- `npm run package` - создание архива для публикации
+- `npm run dev` - build in development mode with file watching
+- `npm run build` - build for production
+- `npm run clean` - clean dist folder
+- `npm run package` - create archive for publishing
 
-### Архитектура
+### Architecture
 
-Расширение состоит из трех основных частей:
+The extension consists of three main parts:
 
-1. **Popup** - интерфейс управления папками (Vue.js)
-2. **Content Script** - интеграция с сайтом DeepSeek через API
-3. **Background Script** - управление данными и синхронизация
+1. **Popup** - folder management interface (Vue.js)
+2. **Content Script** - DeepSeek website integration via API
+3. **Background Script** - data management and synchronization
 
-### Особенности реализации
+### Implementation Details
 
-- **API интеграция**: Получение данных чатов через `https://chat.deepseek.com/api/v0/chat_session/fetch_page`
-- **Авторизация**: Автоматическое извлечение Bearer токена из localStorage
-- **SPA поддержка**: Отслеживание изменений URL и асинхронной загрузки контента
-- **Надежность**: Поиск элементов чатов по ID и заголовку из API
+- **API Integration**: Chat data retrieval via `https://chat.deepseek.com/api/v0/chat_session/fetch_page`
+- **Authorization**: Automatic Bearer token extraction from localStorage
+- **SPA Support**: URL change tracking and asynchronous content loading
+- **Reliability**: Chat element search by ID and title from API
 
-### Добавление новых функций
+### Adding New Features
 
-1. Обновите типы в `src/shared/types.ts`
-2. Добавьте логику в соответствующий скрипт
-3. Обновите интерфейс в `src/popup/App.vue`
-4. Протестируйте на сайте DeepSeek
+1. Update types in `src/shared/types.ts`
+2. Add logic to the appropriate script
+3. Update interface in `src/popup/App.vue`
+4. Test on DeepSeek website
 
-## Лицензия
+## License
 
 MIT License
 
-## Поддержка
+## Support
 
-Если у вас есть вопросы или предложения, создайте issue в репозитории.
+If you have questions or suggestions, create an issue in the repository.

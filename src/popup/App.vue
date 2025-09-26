@@ -31,7 +31,7 @@ import ChatsSection from "./components/ChatsSection.vue";
 import AppFooter from "./components/AppFooter.vue";
 import { useFolders, useChats, useTheme } from "./composables/useAppLogic";
 
-// Используем composables для логики
+// Use composables for logic
 const {
   folders,
   selectedFolder,

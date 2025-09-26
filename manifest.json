@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DeepSeek Chat Manager",
   "version": "1.0.0",
-  "description": "Расширение для группировки чатов DeepSeek по папкам",
+  "description": "Extension for organizing DeepSeek chats into folders",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["https://chat.deepseek.com/*"],
   "background": {

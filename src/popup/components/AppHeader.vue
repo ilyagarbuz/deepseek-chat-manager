@@ -3,7 +3,7 @@
     <div class="header-content">
       <div class="header-text">
         <h1>DeepSeek Chat Manager</h1>
-        <p class="subtitle">Управление папками чатов</p>
+        <p class="subtitle">Chat folder management</p>
       </div>
       <div class="theme-toggle">
         <button
@@ -45,13 +45,13 @@ const getThemeIcon = (): string => {
 const getThemeTitle = (): string => {
   switch (props.currentTheme) {
     case "light":
-      return "Светлая тема";
+      return "Light theme";
     case "dark":
-      return "Темная тема";
+      return "Dark theme";
     case "system":
-      return "Системная тема";
+      return "System theme";
     default:
-      return "Системная тема";
+      return "System theme";
   }
 };
 </script>

@@ -22,7 +22,7 @@ export interface ExtensionStorage {
   theme: Theme;
 }
 
-// Типы сообщений для общения между компонентами расширения
+// Message types for communication between extension components
 export interface BaseMessage {
   type: string;
 }
@@ -71,7 +71,7 @@ export type ExtensionMessage =
   | GetThemeMessage
   | SetThemeMessage;
 
-// Типы ответов от background script
+// Response types from background script
 export interface BaseResponse {
   success?: boolean;
   error?: string;

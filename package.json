@@ -13,7 +13,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Браузерное расширение для группировки чатов DeepSeek по папкам",
+  "description": "Browser extension for organizing DeepSeek chats into folders",
   "dependencies": {
     "@types/chrome": "^0.1.12",
     "@vitejs/plugin-vue": "^6.0.1",
