@@ -14,13 +14,14 @@
           <span class="chat-title">{{ chat.title }}</span>
         </div>
         <div class="chat-actions">
-          <button
-            @click.stop="$emit('remove-chat', chat.id)"
-            class="btn-remove"
+          <IconButton
+            :icon="Trash"
+            :size="14"
+            variant="danger"
+            circular
             title="Remove from folder"
-          >
-            <Trash :size="14" />
-          </button>
+            @click="$emit('remove-chat', chat.id)"
+          />
         </div>
       </div>
     </div>
@@ -30,6 +31,7 @@
 <script setup lang="ts">
 import { Trash } from "lucide-vue-next";
 import type { Folder, Chat } from "@/shared/types";
+import IconButton from "./ui/IconButton.vue";
 
 const props = defineProps<{
   folders: Folder[];
@@ -115,21 +117,5 @@ const getFolderChats = (folderId: string): Chat[] => {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.btn-remove {
-  background: transparent;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-remove:hover .lucide {
-  color: #dc2626;
 }
 </style>

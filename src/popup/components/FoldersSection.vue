@@ -2,10 +2,15 @@
   <div class="folders-section">
     <div class="section-header">
       <h2>Folders</h2>
-      <button @click="$emit('create-folder')" class="btn btn-primary">
-        <Plus :size="14" />
+      <Button
+        :icon="Plus"
+        :icon-size="14"
+        variant="primary"
+        size="md"
+        @click="$emit('create-folder')"
+      >
         Create folder
-      </button>
+      </Button>
     </div>
 
     <div class="folders-list">
@@ -18,13 +23,14 @@
       >
         <span class="folder-name">{{ folder.name }}</span>
         <!-- <span class="folder-count">({{ folder.chatCount }})</span> -->
-        <button
-          @click.stop="$emit('delete-folder', folder.id)"
-          class="btn-delete"
+        <IconButton
+          :icon="Trash"
+          :size="14"
+          variant="danger"
+          circular
           title="Delete folder"
-        >
-          <Trash :size="14" />
-        </button>
+          @click="$emit('delete-folder', folder.id)"
+        />
       </div>
     </div>
   </div>
@@ -33,6 +39,8 @@
 <script setup lang="ts">
 import { Plus, Trash } from "lucide-vue-next";
 import type { Folder } from "@/shared/types";
+import IconButton from "./ui/IconButton.vue";
+import Button from "./ui/Button.vue";
 
 defineProps<{
   folders: Folder[];
@@ -101,44 +109,5 @@ defineEmits<{
   color: var(--text-secondary);
   font-size: 12px;
   margin-right: 8px;
-}
-
-.btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: var(--font-family-primary);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-primary {
-  background: var(--deepseek-primary-static);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-}
-
-.btn-delete {
-  background: transparent;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-delete:hover .lucide {
-  color: #dc2626;
 }
 </style>
