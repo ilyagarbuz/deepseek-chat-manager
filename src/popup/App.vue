@@ -2,7 +2,7 @@
   <div class="app">
     <AppHeader :current-theme="currentTheme" @toggle-theme="toggleTheme" />
 
-    <main class="main">
+    <main class="main custom-scrollbar">
       <FoldersSection
         :folders="folders"
         :selected-folder="selectedFolder"
