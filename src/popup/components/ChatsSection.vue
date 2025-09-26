@@ -19,7 +19,7 @@
             class="btn-remove"
             title="Remove from folder"
           >
-            ×
+            <Trash :size="14" />
           </button>
         </div>
       </div>
@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+import { Trash } from "lucide-vue-next";
 import type { Folder, Chat } from "@/shared/types";
 
 const props = defineProps<{
@@ -117,22 +118,18 @@ const getFolderChats = (folderId: string): Chat[] => {
 }
 
 .btn-remove {
-  background: #ef4444;
+  background: transparent;
   color: white;
-  width: 20px;
-  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  font-family: var(--font-family-primary);
   cursor: pointer;
   border: none;
+  transition: all 0.2s;
 }
 
-.btn-remove:hover {
-  background: #dc2626;
+.btn-remove:hover .lucide {
+  color: #dc2626;
 }
 </style>

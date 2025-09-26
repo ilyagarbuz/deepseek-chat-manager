@@ -11,7 +11,7 @@
           class="theme-btn"
           :title="getThemeTitle()"
         >
-          {{ getThemeIcon() }}
+          <component :is="getThemeIcon()" :size="16" />
         </button>
       </div>
     </div>
@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import { Sun, Moon, Monitor } from "lucide-vue-next";
 import type { Theme } from "@/shared/types";
 
 const props = defineProps<{
@@ -29,16 +30,16 @@ defineEmits<{
   "toggle-theme": [];
 }>();
 
-const getThemeIcon = (): string => {
+const getThemeIcon = () => {
   switch (props.currentTheme) {
     case "light":
-      return "☀️";
+      return Sun;
     case "dark":
-      return "🌙";
+      return Moon;
     case "system":
-      return "💻";
+      return Monitor;
     default:
-      return "💻";
+      return Monitor;
   }
 };
 

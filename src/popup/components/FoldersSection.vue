@@ -3,7 +3,8 @@
     <div class="section-header">
       <h2>Folders</h2>
       <button @click="$emit('create-folder')" class="btn btn-primary">
-        + Create folder
+        <Plus :size="14" />
+        Create folder
       </button>
     </div>
 
@@ -16,13 +17,13 @@
         @click="$emit('select-folder', folder.id)"
       >
         <span class="folder-name">{{ folder.name }}</span>
-        <span class="folder-count">({{ folder.chatCount }})</span>
+        <!-- <span class="folder-count">({{ folder.chatCount }})</span> -->
         <button
           @click.stop="$emit('delete-folder', folder.id)"
           class="btn-delete"
           title="Delete folder"
         >
-          ×
+          <Trash :size="14" />
         </button>
       </div>
     </div>
@@ -30,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { Plus, Trash } from "lucide-vue-next";
 import type { Folder } from "@/shared/types";
 
 defineProps<{
@@ -110,6 +112,9 @@ defineEmits<{
   font-family: var(--font-family-primary);
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-primary {
@@ -122,22 +127,18 @@ defineEmits<{
 }
 
 .btn-delete {
-  background: #ef4444;
+  background: transparent;
   color: white;
-  width: 20px;
-  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  font-family: var(--font-family-primary);
   cursor: pointer;
   border: none;
+  transition: all 0.2s;
 }
 
-.btn-delete:hover {
-  background: #dc2626;
+.btn-delete:hover .lucide {
+  color: #dc2626;
 }
 </style>
