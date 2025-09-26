@@ -716,11 +716,11 @@ class DeepSeekChatManager {
     const style = document.createElement("style");
     style.textContent = `
       .dsm-folder-indicator {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: var(--font-family-primary);
       }
       
       .dsm-context-menu {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: var(--font-family-primary);
       }
       
       .dsm-menu-item:hover {

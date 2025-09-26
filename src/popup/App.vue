@@ -205,7 +205,7 @@ const openChat = (chat: Chat) => {
   flex-direction: column;
   height: 100vh;
   background: #f8f9fa;
-  font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+  font-family: var(--font-family-primary);
 }
 
 .header {
@@ -344,7 +344,7 @@ const openChat = (chat: Chat) => {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
-  font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+  font-family: var(--font-family-primary);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -370,7 +370,7 @@ const openChat = (chat: Chat) => {
   justify-content: center;
   font-size: 14px;
   font-weight: bold;
-  font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+  font-family: var(--font-family-primary);
   cursor: pointer;
   border: none;
 }
@@ -391,7 +391,7 @@ const openChat = (chat: Chat) => {
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
-  font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+  font-family: var(--font-family-primary);
   cursor: pointer;
   border: none;
 }
