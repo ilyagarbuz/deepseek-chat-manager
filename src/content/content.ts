@@ -425,7 +425,7 @@ class DeepSeekChatManager {
       position: absolute;
       top: 4px;
       right: 4px;
-      background: #2563eb;
+      background: var(--deepseek-primary-static);
       color: white;
       padding: 2px 6px;
       border-radius: 4px;
@@ -482,7 +482,7 @@ class DeepSeekChatManager {
         padding: 8px 16px;
         cursor: pointer;
         font-size: 14px;
-        color: ${isInFolder ? "#2563eb" : "#374151"};
+        color: ${isInFolder ? "var(--deepseek-primary-static)" : "#374151"};
         background: ${isInFolder ? "#eff6ff" : "transparent"};
       `;
 

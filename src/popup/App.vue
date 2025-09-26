@@ -209,7 +209,7 @@ const openChat = (chat: Chat) => {
 }
 
 .header {
-  background: #2563eb;
+  background: var(--deepseek-primary-static);
   color: white;
   padding: 16px;
   text-align: center;
@@ -270,12 +270,12 @@ const openChat = (chat: Chat) => {
 }
 
 .folder-item:hover {
-  border-color: #2563eb;
+  border-color: var(--deepseek-primary-static);
   box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
 }
 
 .folder-item.active {
-  border-color: #2563eb;
+  border-color: var(--deepseek-primary-static);
   background: #eff6ff;
 }
 
@@ -308,7 +308,7 @@ const openChat = (chat: Chat) => {
 }
 
 .chat-item:hover {
-  border-color: #2563eb;
+  border-color: var(--deepseek-primary-static);
   box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
 }
 
@@ -350,7 +350,7 @@ const openChat = (chat: Chat) => {
 }
 
 .btn-primary {
-  background: #2563eb;
+  background: var(--deepseek-primary-static);
   color: white;
 }
 

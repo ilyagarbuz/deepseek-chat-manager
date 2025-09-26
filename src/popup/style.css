@@ -53,3 +53,8 @@ input, textarea, select {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* DeepSeek colors */
+:root {
+  --deepseek-primary-static: #5686fe;
+}

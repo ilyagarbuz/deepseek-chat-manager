@@ -5,7 +5,7 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  background: #2563eb;
+  background: var(--deepseek-primary-static);
   color: white;
   padding: 2px 6px;
   border-radius: 4px;
@@ -51,7 +51,7 @@
 
 .dsm-menu-item.selected {
   background: #eff6ff;
-  color: #2563eb;
+  color: var(--deepseek-primary-static);
   font-weight: 500;
 }
 
@@ -61,7 +61,7 @@
 }
 
 .dsm-chat-item.has-folder {
-  border-left: 3px solid #2563eb;
+  border-left: 3px solid var(--deepseek-primary-static);
   padding-left: 8px;
 }
 
@@ -161,7 +161,7 @@
 /* Стили для drag & drop (если будет реализован) */
 .dsm-drag-over {
   background: #eff6ff;
-  border: 2px dashed #2563eb;
+  border: 2px dashed var(--deepseek-primary-static);
 }
 
 .dsm-dragging {
