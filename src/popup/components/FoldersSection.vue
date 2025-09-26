@@ -73,7 +73,7 @@ defineEmits<{
   display: flex;
   align-items: center;
   padding: 12px;
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;

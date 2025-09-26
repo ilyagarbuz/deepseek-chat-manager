@@ -47,9 +47,9 @@ input, textarea, select {
 
 /* Dark theme */
 [data-theme="dark"] {
-  --bg-primary: #111827;
+  --bg-primary: #1b1b1c;
   --bg-secondary: #1f2937;
-  --bg-tertiary: #374151;
+  --bg-tertiary: #43454a;
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
   --border-color: #4b5563;
@@ -59,9 +59,9 @@ input, textarea, select {
 /* System theme - follows OS preference */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-primary: #111827;
+    --bg-primary: #1b1b1c;
     --bg-secondary: #1f2937;
-    --bg-tertiary: #374151;
+    --bg-tertiary: #43454a;
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;
     --border-color: #4b5563;
