@@ -1,8 +1,21 @@
 <template>
   <div class="app">
     <header class="header">
-      <h1>DeepSeek Chat Manager</h1>
-      <p class="subtitle">Управление папками чатов</p>
+      <div class="header-content">
+        <div class="header-text">
+          <h1>DeepSeek Chat Manager</h1>
+          <p class="subtitle">Управление папками чатов</p>
+        </div>
+        <div class="theme-toggle">
+          <button
+            @click="toggleTheme"
+            class="theme-btn"
+            :title="getThemeTitle()"
+          >
+            {{ getThemeIcon() }}
+          </button>
+        </div>
+      </div>
     </header>
 
     <main class="main">
@@ -77,12 +90,14 @@ import { ref, onMounted } from "vue";
 import type {
   Folder,
   Chat,
+  Theme,
   ExtensionMessage,
   ExtensionResponse,
 } from "@/shared/types";
 
 const folders = ref<Folder[]>([]);
 const selectedFolder = ref<string | null>(null);
+const currentTheme = ref<Theme>("system");
 
 // Функция для отправки сообщений в background script
 const sendMessage = async <T extends ExtensionResponse>(
@@ -103,6 +118,7 @@ const sendMessage = async <T extends ExtensionResponse>(
 
 onMounted(async () => {
   await loadFolders();
+  await loadTheme();
 });
 
 const loadFolders = async () => {
@@ -197,6 +213,74 @@ const openChat = (chat: Chat) => {
     chrome.tabs.create({ url: url });
   }
 };
+
+// Функции для работы с темами
+const loadTheme = async () => {
+  try {
+    const response = await sendMessage<{ theme: Theme }>({
+      type: "GET_THEME",
+    });
+    currentTheme.value = response.theme || "system";
+    applyTheme(currentTheme.value);
+  } catch (error) {
+    console.error("Ошибка загрузки темы:", error);
+    currentTheme.value = "system";
+    applyTheme("system");
+  }
+};
+
+const toggleTheme = async () => {
+  const themes: Theme[] = ["light", "dark", "system"];
+  const currentIndex = themes.indexOf(currentTheme.value);
+  const nextTheme = themes[(currentIndex + 1) % themes.length];
+
+  try {
+    await sendMessage({
+      type: "SET_THEME",
+      theme: nextTheme,
+    });
+    currentTheme.value = nextTheme;
+    applyTheme(nextTheme);
+  } catch (error) {
+    console.error("Ошибка установки темы:", error);
+  }
+};
+
+const applyTheme = (theme: Theme) => {
+  const root = document.documentElement;
+
+  if (theme === "system") {
+    root.removeAttribute("data-theme");
+  } else {
+    root.setAttribute("data-theme", theme);
+  }
+};
+
+const getThemeIcon = (): string => {
+  switch (currentTheme.value) {
+    case "light":
+      return "☀️";
+    case "dark":
+      return "🌙";
+    case "system":
+      return "💻";
+    default:
+      return "💻";
+  }
+};
+
+const getThemeTitle = (): string => {
+  switch (currentTheme.value) {
+    case "light":
+      return "Светлая тема";
+    case "dark":
+      return "Темная тема";
+    case "system":
+      return "Системная тема";
+    default:
+      return "Системная тема";
+  }
+};
 </script>
 
 <style scoped>
@@ -204,15 +288,25 @@ const openChat = (chat: Chat) => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f8f9fa;
+  background: var(--bg-primary);
   font-family: var(--font-family-primary);
+  transition: background-color 0.3s ease;
 }
 
 .header {
   background: var(--deepseek-primary-static);
   color: white;
   padding: 16px;
-  text-align: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-text {
+  flex: 1;
 }
 
 .header h1 {
@@ -225,6 +319,30 @@ const openChat = (chat: Chat) => {
   margin: 0;
   font-size: 12px;
   opacity: 0.9;
+}
+
+.theme-toggle {
+  margin-left: 12px;
+}
+
+.theme-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.theme-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .main {
@@ -245,7 +363,7 @@ const openChat = (chat: Chat) => {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .folders-section {
@@ -262,8 +380,8 @@ const openChat = (chat: Chat) => {
   display: flex;
   align-items: center;
   padding: 12px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -271,22 +389,21 @@ const openChat = (chat: Chat) => {
 
 .folder-item:hover {
   border-color: var(--deepseek-primary-static);
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .folder-item.active {
   border-color: var(--deepseek-primary-static);
-  background: #eff6ff;
 }
 
 .folder-name {
   flex: 1;
   font-weight: 500;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .folder-count {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 12px;
   margin-right: 8px;
 }
@@ -301,15 +418,15 @@ const openChat = (chat: Chat) => {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   transition: all 0.2s;
 }
 
 .chat-item:hover {
   border-color: var(--deepseek-primary-static);
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .chat-content {
@@ -322,13 +439,13 @@ const openChat = (chat: Chat) => {
 
 .chat-title {
   font-size: 13px;
-  color: #374151;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .chat-url {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-family: monospace;
 }
 
@@ -402,14 +519,14 @@ const openChat = (chat: Chat) => {
 
 .footer {
   padding: 12px 16px;
-  background: #f3f4f6;
-  border-top: 1px solid #e5e7eb;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-color);
 }
 
 .help-text {
   margin: 0;
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-align: center;
   line-height: 1.4;
 }

@@ -1,6 +1,7 @@
 import type {
   Chat,
   Folder,
+  Theme,
   ExtensionMessage,
   ExtensionResponse,
 } from "@/shared/types";
@@ -8,6 +9,7 @@ import type {
 // Background script для управления расширением
 class BackgroundManager {
   private folders: Folder[] = [];
+  private theme: Theme = "system";
 
   constructor() {
     this.init();
@@ -28,15 +30,16 @@ class BackgroundManager {
 
   private async loadData() {
     try {
-      const result = await chrome.storage.local.get(["folders"]);
+      const result = await chrome.storage.local.get(["folders", "theme"]);
       this.folders = result.folders || [];
+      this.theme = result.theme || "system";
 
       const totalChats = this.folders.reduce(
         (sum, folder) => sum + folder.chats.length,
         0
       );
       console.log(
-        `Загружено ${this.folders.length} папок и ${totalChats} чатов`
+        `Загружено ${this.folders.length} папок и ${totalChats} чатов, тема: ${this.theme}`
       );
     } catch (error) {
       console.error("Ошибка загрузки данных:", error);
@@ -102,6 +105,15 @@ class BackgroundManager {
           sendResponse({ success: true });
           break;
 
+        case "GET_THEME":
+          sendResponse({ theme: this.theme });
+          break;
+
+        case "SET_THEME":
+          await this.setTheme(message.theme);
+          sendResponse({ success: true });
+          break;
+
         default:
           console.warn("Неизвестный тип сообщения:", (message as any).type);
           sendResponse({ error: "Unknown message type" });
@@ -132,6 +144,14 @@ class BackgroundManager {
         "чатов:",
         totalChats
       );
+    }
+
+    if (changes.theme) {
+      this.theme = changes.theme.newValue || "system";
+      console.log("Тема изменена на:", this.theme);
+
+      // Уведомляем все вкладки об изменении темы
+      this.notifyTabsAboutThemeChange();
     }
   }
 
@@ -195,6 +215,7 @@ class BackgroundManager {
     this.folders = [defaultFolder];
     await chrome.storage.local.set({
       folders: this.folders,
+      theme: "system",
     });
   }
 
@@ -260,6 +281,36 @@ class BackgroundManager {
 
     // Здесь можно добавить логику для синхронизации с внешними источниками
     // или очистки устаревших данных
+  }
+
+  private async setTheme(theme: Theme): Promise<void> {
+    this.theme = theme;
+    await chrome.storage.local.set({ theme: this.theme });
+
+    // Уведомляем все вкладки об изменении темы
+    this.notifyTabsAboutThemeChange();
+  }
+
+  private async notifyTabsAboutThemeChange(): Promise<void> {
+    try {
+      const tabs = await chrome.tabs.query({ url: "*://chat.deepseek.com/*" });
+
+      for (const tab of tabs) {
+        if (tab.id) {
+          try {
+            await chrome.tabs.sendMessage(tab.id, {
+              type: "THEME_CHANGED",
+              theme: this.theme,
+            });
+          } catch (error) {
+            // Content script может быть не загружен
+            console.log("Не удалось отправить сообщение на вкладку", tab.id);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Ошибка уведомления вкладок о изменении темы:", error);
+    }
   }
 }
 

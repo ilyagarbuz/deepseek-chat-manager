@@ -4,6 +4,37 @@
 /* CSS переменные */
 :root {
   --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --deepseek-primary-static: #5686fe;
+  
+  /* Light theme colors */
+  --dsm-bg-primary: #ffffff;
+  --dsm-bg-secondary: #f3f4f6;
+  --dsm-text-primary: #374151;
+  --dsm-text-secondary: #6b7280;
+  --dsm-border-color: #e5e7eb;
+  --dsm-shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --dsm-bg-primary: #1f2937;
+  --dsm-bg-secondary: #374151;
+  --dsm-text-primary: #f9fafb;
+  --dsm-text-secondary: #d1d5db;
+  --dsm-border-color: #4b5563;
+  --dsm-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* System theme - follows OS preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --dsm-bg-primary: #1f2937;
+    --dsm-bg-secondary: #374151;
+    --dsm-text-primary: #f9fafb;
+    --dsm-text-secondary: #d1d5db;
+    --dsm-border-color: #4b5563;
+    --dsm-shadow-color: rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* Стили для DeepSeek Chat Manager */
@@ -31,22 +62,23 @@
 /* Контекстное меню */
 .dsm-context-menu {
   position: fixed;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--dsm-bg-primary);
+  border: 1px solid var(--dsm-border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px var(--dsm-shadow-color), 0 2px 4px -1px var(--dsm-shadow-color);
   z-index: 10000;
   min-width: 200px;
   padding: 8px 0;
   font-family: var(--font-family-primary);
   font-size: 14px;
   line-height: 1.5;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .dsm-menu-item {
   padding: 8px 16px;
   cursor: pointer;
-  color: #374151;
+  color: var(--dsm-text-primary);
   transition: background-color 0.15s ease;
   display: flex;
   align-items: center;
@@ -54,7 +86,7 @@
 }
 
 .dsm-menu-item:hover {
-  background: #f3f4f6;
+  background: var(--dsm-bg-secondary);
 }
 
 .dsm-menu-item.selected {
@@ -122,27 +154,6 @@
   }
 }
 
-/* Темная тема (если сайт использует темную тему) */
-@media (prefers-color-scheme: dark) {
-  .dsm-context-menu {
-    background: #1f2937;
-    border-color: #374151;
-    color: #f9fafb;
-  }
-  
-  .dsm-menu-item {
-    color: #f9fafb;
-  }
-  
-  .dsm-menu-item:hover {
-    background: #374151;
-  }
-  
-  .dsm-menu-item.selected {
-    background: #1e40af;
-    color: #dbeafe;
-  }
-}
 
 /* Стили для интеграции с DeepSeek */
 
@@ -183,7 +194,7 @@
   color: white;
   padding: 12px 16px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px var(--dsm-shadow-color);
   z-index: 10001;
   font-family: var(--font-family-primary);
   font-size: 14px;

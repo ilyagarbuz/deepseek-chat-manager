@@ -1,6 +1,7 @@
 import type {
   Chat,
   Folder,
+  Theme,
   ExtensionMessage,
   ExtensionResponse,
 } from "@/shared/types";
@@ -11,6 +12,7 @@ class DeepSeekChatManager {
   private chatElements: Map<string, HTMLElement> = new Map();
   private folders: Folder[] = [];
   private chatData: Map<string, Chat> = new Map();
+  private currentTheme: Theme = "system";
 
   // Возвращает данные чата из кэша, при отсутствии — создает минимальные из chatId
   private getOrCreateChatData(chatId: string): Chat {
@@ -47,6 +49,7 @@ class DeepSeekChatManager {
 
   private async setup() {
     await this.loadFolders();
+    await this.loadTheme();
 
     // Проверяем наличие токена авторизации
     const token = this.getUserToken();
@@ -709,6 +712,25 @@ class DeepSeekChatManager {
           console.log("Storage: Папки обновлены");
         }
       }
+
+      if (changes.theme) {
+        console.log("Storage: Обнаружено изменение темы");
+        const newTheme = changes.theme.newValue || "system";
+        if (this.currentTheme !== newTheme) {
+          this.currentTheme = newTheme;
+          this.applyTheme(newTheme);
+          console.log("Storage: Тема обновлена на:", newTheme);
+        }
+      }
+    });
+
+    // Слушаем сообщения от background script
+    chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+      if (message.type === "THEME_CHANGED") {
+        this.currentTheme = message.theme;
+        this.applyTheme(message.theme);
+        console.log("Получено сообщение об изменении темы:", message.theme);
+      }
     });
   }
 
@@ -728,6 +750,31 @@ class DeepSeekChatManager {
       }
     `;
     document.head.appendChild(style);
+  }
+
+  // Методы для работы с темами
+  private async loadTheme(): Promise<void> {
+    try {
+      const response = await this.sendMessage<{ theme: Theme }>({
+        type: "GET_THEME",
+      });
+      this.currentTheme = response.theme || "system";
+      this.applyTheme(this.currentTheme);
+    } catch (error) {
+      console.error("Ошибка загрузки темы:", error);
+      this.currentTheme = "system";
+      this.applyTheme("system");
+    }
+  }
+
+  private applyTheme(theme: Theme): void {
+    const root = document.documentElement;
+
+    if (theme === "system") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.setAttribute("data-theme", theme);
+    }
   }
 }
 

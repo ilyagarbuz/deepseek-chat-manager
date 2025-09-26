@@ -15,8 +15,11 @@ export interface Folder {
   color?: string;
 }
 
+export type Theme = "light" | "dark" | "system";
+
 export interface ExtensionStorage {
   folders: Folder[];
+  theme: Theme;
 }
 
 // Типы сообщений для общения между компонентами расширения
@@ -50,12 +53,23 @@ export interface RemoveChatFromFolderMessage extends BaseMessage {
   folderId: string;
 }
 
+export interface GetThemeMessage extends BaseMessage {
+  type: "GET_THEME";
+}
+
+export interface SetThemeMessage extends BaseMessage {
+  type: "SET_THEME";
+  theme: Theme;
+}
+
 export type ExtensionMessage =
   | GetFoldersMessage
   | CreateFolderMessage
   | DeleteFolderMessage
   | AddChatToFolderMessage
-  | RemoveChatFromFolderMessage;
+  | RemoveChatFromFolderMessage
+  | GetThemeMessage
+  | SetThemeMessage;
 
 // Типы ответов от background script
 export interface BaseResponse {
@@ -71,4 +85,12 @@ export interface FolderResponse extends BaseResponse {
   folder: Folder;
 }
 
-export type ExtensionResponse = FoldersResponse | FolderResponse | BaseResponse;
+export interface ThemeResponse extends BaseResponse {
+  theme: Theme;
+}
+
+export type ExtensionResponse =
+  | FoldersResponse
+  | FolderResponse
+  | ThemeResponse
+  | BaseResponse;
