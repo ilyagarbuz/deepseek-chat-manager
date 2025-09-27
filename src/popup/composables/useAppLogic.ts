@@ -91,19 +91,15 @@ export const useFolders = () => {
     return folder.chats;
   };
 
-  const removeChatFromFolder = async (chatId: string) => {
-    if (!selectedFolder.value) return;
-
+  const removeChatFromFolder = async (chatId: string, folderId: string) => {
     try {
       await sendMessage({
         type: "REMOVE_CHAT_FROM_FOLDER",
         chatId,
-        folderId: selectedFolder.value,
+        folderId,
       });
 
-      const folder = folders.value.find(
-        (f: Folder) => f.id === selectedFolder.value
-      );
+      const folder = folders.value.find((f: Folder) => f.id === folderId);
       if (folder) {
         folder.chats = folder.chats.filter((chat: Chat) => chat.id !== chatId);
         folder.chatCount = folder.chats.length;

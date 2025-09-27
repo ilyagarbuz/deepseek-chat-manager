@@ -47,7 +47,7 @@
                 variant="danger"
                 circular
                 title="Remove from folder"
-                @click="$emit('remove-chat', chat.id)"
+                @click="$emit('remove-chat', chat.id, folder.id)"
               />
             </div>
           </div>
@@ -76,7 +76,7 @@ defineEmits<{
   "select-folder": [folderId: string];
   "delete-folder": [folderId: string];
   "open-chat": [chat: Chat];
-  "remove-chat": [chatId: string];
+  "remove-chat": [chatId: string, folderId: string];
 }>();
 
 // Track expanded folders
