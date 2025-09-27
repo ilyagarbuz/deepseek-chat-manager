@@ -21,12 +21,12 @@
       </div>
     </main>
 
-    <AppFooter />
+    <AppFooter v-if="isShowFooter" @toggle-footer="toggleFooter" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import AppHeader from "./components/AppHeader.vue";
 import FoldersSection from "./components/FoldersSection.vue";
 import AppFooter from "./components/AppFooter.vue";
@@ -46,6 +46,12 @@ const {
 const { openChat } = useChats();
 
 const { currentTheme, loadTheme, toggleTheme } = useTheme();
+
+const isShowFooter = ref(true);
+
+const toggleFooter = () => {
+  isShowFooter.value = !isShowFooter.value;
+};
 
 onMounted(async () => {
   await loadFolders();

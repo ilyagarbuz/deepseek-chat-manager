@@ -58,7 +58,7 @@ const themeIcon = computed(() => {
 .header {
   background: var(--deepseek-primary-static);
   color: white;
-  padding: 16px;
+  padding: 10px 16px;
 }
 
 .header-content {
