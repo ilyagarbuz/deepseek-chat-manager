@@ -53,14 +53,21 @@ export class ContextMenuService {
   addContextMenuToChat(element: HTMLElement, chatId: string) {
     element.addEventListener("contextmenu", (e) => {
       e.preventDefault();
-      this.showContextMenu(e, chatId);
+      // получаем первый div и берем текст из него
+      const chatName =
+        element.querySelector("div")?.textContent?.trim() || chatId;
+      this.showContextMenu(e, chatId, chatName);
     });
   }
 
   /**
    * Показывает контекстное меню
    */
-  private async showContextMenu(event: MouseEvent, chatId: string) {
+  private async showContextMenu(
+    event: MouseEvent,
+    chatId: string,
+    chatName: string
+  ) {
     // Удаляем существующее меню
     const existingMenu = document.querySelector(".dsm-context-menu");
     if (existingMenu) {
@@ -102,7 +109,7 @@ export class ContextMenuService {
       `;
 
       item.addEventListener("click", () => {
-        this.toggleChatInFolder(chatId, folder.id);
+        this.toggleChatInFolder(chatId, chatName, folder.id);
         menu.remove();
       });
 
@@ -135,7 +142,7 @@ export class ContextMenuService {
     `;
 
     createItem.addEventListener("click", () => {
-      this.createFolderForChat(chatId);
+      this.createFolderForChat(chatId, chatName);
       menu.remove();
     });
 
@@ -159,7 +166,11 @@ export class ContextMenuService {
   /**
    * Переключает чат в папке
    */
-  private async toggleChatInFolder(chatId: string, folderId: string) {
+  private async toggleChatInFolder(
+    chatId: string,
+    chatName: string,
+    folderId: string
+  ) {
     // Проверяем, что folders является массивом
     if (!Array.isArray(this.folders)) {
       return;
@@ -168,7 +179,7 @@ export class ContextMenuService {
     const folder = this.folders.find((f) => f.id === folderId);
     if (!folder) return;
 
-    const chatData = this.getOrCreateChatData(chatId);
+    const chatData = this.getOrCreateChatData(chatId, chatName);
 
     const existingChat = folder.chats.find((c) => c.id === chatId);
     const isInFolder = !!existingChat;
@@ -199,7 +210,7 @@ export class ContextMenuService {
   /**
    * Создает папку для чата
    */
-  private async createFolderForChat(chatId: string) {
+  private async createFolderForChat(chatId: string, chatName: string) {
     const name = prompt("Enter folder name:");
     if (!name) return;
 
@@ -217,7 +228,7 @@ export class ContextMenuService {
       );
 
       // Добавляем чат в новую папку
-      const chatData = this.getOrCreateChatData(chatId);
+      const chatData = this.getOrCreateChatData(chatId, chatName);
       await DeepSeekApiService.sendMessage({
         type: "ADD_CHAT_TO_FOLDER",
         chat: chatData,
@@ -234,7 +245,7 @@ export class ContextMenuService {
   /**
    * Получает или создает данные чата
    */
-  private getOrCreateChatData(chatId: string): Chat {
+  private getOrCreateChatData(chatId: string, chatName: string): Chat {
     // Находим чат в любой из папок
     for (const folder of this.folders) {
       const existing = folder.chats.find((c) => c.id === chatId);
@@ -244,7 +255,7 @@ export class ContextMenuService {
     // Если не найден, создаем минимальный объект
     const minimal: Chat = {
       id: chatId,
-      title: `Chat ${chatId}`,
+      title: chatName,
       url: `https://chat.deepseek.com/a/chat/s/${chatId}`,
       createdAt: new Date(),
     };
