@@ -16,7 +16,7 @@
           <div class="folder-header">
             <IconButton
               :icon="isExpanded(folder.id) ? FolderOpen : FolderClosed"
-              :size="14"
+              :size="16"
               variant="default"
               circular
               title="Toggle folder"
@@ -155,7 +155,7 @@ const isExpanded = (folderId: string) => {
   display: flex;
   align-items: center;
   flex: 1;
-  gap: 8px;
+  gap: 3px;
 }
 
 .folder-name {
