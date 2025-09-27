@@ -414,31 +414,37 @@ class DeepSeekChatManager {
       return;
     }
 
-    // Check which folder the chat is in
-    const folder = this.folders.find((f) =>
+    // Find all folders that contain this chat
+    const chatFolders = this.folders.filter((f) =>
       f.chats.some((c) => c.id === chatId)
     );
-    if (!folder) return;
 
-    // Add folder indicator
-    const indicator = document.createElement("div");
-    indicator.className = "dsm-folder-indicator";
-    indicator.textContent = folder.name;
-    indicator.style.cssText = `
+    if (chatFolders.length === 0) return;
+
+    // Create container for folder indicators
+    const container = document.createElement("div");
+    container.className = "dsm-folder-indicators";
+    container.style.cssText = `
       position: absolute;
       top: 4px;
       right: 4px;
-      background: var(--deepseek-primary-static);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 500;
+      display: flex;
+      gap: 4px;
       z-index: 1000;
     `;
 
+    // Add a colored circle for each folder
+    chatFolders.forEach((folder) => {
+      const indicator = document.createElement("div");
+      indicator.className = "dsm-folder-indicator";
+      indicator.style.cssText = `
+        background: ${folder.color || "#6b7280"};
+      `;
+      container.appendChild(indicator);
+    });
+
     element.style.position = "relative";
-    element.appendChild(indicator);
+    element.appendChild(container);
   }
 
   private addContextMenuToChat(element: HTMLElement, chatId: string) {
@@ -623,13 +629,13 @@ class DeepSeekChatManager {
     const element = this.chatElements.get(chatId);
     if (!element) return;
 
-    // Remove old indicator
-    const oldIndicator = element.querySelector(".dsm-folder-indicator");
-    if (oldIndicator) {
-      oldIndicator.remove();
+    // Remove old indicators
+    const oldIndicators = element.querySelector(".dsm-folder-indicators");
+    if (oldIndicators) {
+      oldIndicators.remove();
     }
 
-    // Add new indicator (only if folders is an array)
+    // Add new indicators (only if folders is an array)
     if (Array.isArray(this.folders)) {
       this.addFolderIndicator(element, chatId);
     }

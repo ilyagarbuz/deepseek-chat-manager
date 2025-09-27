@@ -210,6 +210,7 @@ class BackgroundManager {
       chats: [],
       chatCount: 0,
       createdAt: new Date(),
+      color: this.generateRandomColor(),
     };
 
     this.folders = [defaultFolder];
@@ -231,12 +232,23 @@ class BackgroundManager {
       chats: [],
       chatCount: 0,
       createdAt: new Date(),
+      color: this.generateRandomColor(),
     };
 
     this.folders.push(newFolder);
     await chrome.storage.local.set({ folders: this.folders });
 
     return newFolder;
+  }
+
+  private generateRandomColor(): string {
+    // Generate a random hex color
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
   }
 
   private async deleteFolder(folderId: string): Promise<void> {

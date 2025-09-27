@@ -19,6 +19,7 @@
         :key="folder.id"
         class="folder-item"
         :class="{ active: selectedFolder === folder.id }"
+        :style="{ backgroundColor: folder.color || '#f3f4f6' }"
         @click="$emit('select-folder', folder.id)"
       >
         <span class="folder-name">{{ folder.name }}</span>
@@ -88,6 +89,11 @@ defineEmits<{
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.folder-item:hover {
+  opacity: 1;
 }
 
 .folder-item:hover {
