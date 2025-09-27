@@ -3,23 +3,34 @@
     <div class="header-content">
       <div class="header-text">
         <h1>DeepSeek Chat Manager</h1>
-        <p class="subtitle">Chat folder management</p>
       </div>
-      <div class="theme-toggle">
-        <button
+      <div class="header-actions">
+        <IconButton
+          :icon="FolderPlus"
+          :size="18"
+          variant="default"
+          circular
+          style="color: #f9fafb"
+          @click="$emit('create-folder')"
+        />
+        <IconButton
+          :icon="themeIcon"
+          :size="18"
+          variant="default"
+          circular
+          style="color: #f9fafb"
           @click="$emit('toggle-theme')"
-          class="theme-btn"
-          :title="getThemeTitle()"
-        >
-          <component :is="getThemeIcon()" :size="16" />
-        </button>
+        />
       </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { Sun, Moon, Monitor } from "lucide-vue-next";
+import { computed } from "vue";
+import { Sun, Moon, Monitor, FolderPlus } from "lucide-vue-next";
+import IconButton from "./ui/IconButton.vue";
+
 import type { Theme } from "@/shared/types";
 
 const props = defineProps<{
@@ -28,33 +39,19 @@ const props = defineProps<{
 
 defineEmits<{
   "toggle-theme": [];
+  "create-folder": null;
 }>();
 
-const getThemeIcon = () => {
+const themeIcon = computed(() => {
   switch (props.currentTheme) {
     case "light":
       return Sun;
     case "dark":
       return Moon;
-    case "system":
-      return Monitor;
     default:
       return Monitor;
   }
-};
-
-const getThemeTitle = (): string => {
-  switch (props.currentTheme) {
-    case "light":
-      return "Light theme";
-    case "dark":
-      return "Dark theme";
-    case "system":
-      return "System theme";
-    default:
-      return "System theme";
-  }
-};
+});
 </script>
 
 <style scoped>
@@ -70,12 +67,17 @@ const getThemeTitle = (): string => {
   align-items: center;
 }
 
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+
 .header-text {
   flex: 1;
 }
 
 .header h1 {
-  margin: 0 0 4px 0;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
 }

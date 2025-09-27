@@ -60,8 +60,7 @@ const buttonClasses = computed(() => {
 
 .icon-button.circular {
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  padding: 6px;
 }
 
 .icon-button:disabled {
@@ -75,7 +74,7 @@ const buttonClasses = computed(() => {
 }
 
 .icon-button.variant-default:hover {
-  background: var(--bg-secondary);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .icon-button.variant-danger {

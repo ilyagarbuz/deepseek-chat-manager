@@ -75,7 +75,7 @@ const buttonClasses = computed(() => {
   justify-content: center;
   gap: 6px;
   border: none;
-  border-radius: 6px;
+  border-radius: 9px;
   font-family: var(--font-family-primary);
   font-weight: 500;
   cursor: pointer;
@@ -97,13 +97,13 @@ const buttonClasses = computed(() => {
 }
 
 .button-md {
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
   gap: 6px;
 }
 
 .button-lg {
-  padding: 8px 16px;
+  padding: 10px 18px;
   font-size: 14px;
   gap: 8px;
 }

@@ -1,18 +1,5 @@
 <template>
   <div class="folders-section">
-    <div class="section-header">
-      <h2>Folders</h2>
-      <Button
-        :icon="Plus"
-        :icon-size="14"
-        variant="primary"
-        size="md"
-        @click="$emit('create-folder')"
-      >
-        Create folder
-      </Button>
-    </div>
-
     <div class="folders-list">
       <div
         v-for="folder in folders"
@@ -28,7 +15,7 @@
         >
           <div class="folder-header">
             <IconButton
-              :icon="isExpanded(folder.id) ? ChevronDown : ChevronRight"
+              :icon="isExpanded(folder.id) ? FolderOpen : FolderClosed"
               :size="14"
               variant="default"
               circular
@@ -36,7 +23,6 @@
               @click.stop="toggleFolder(folder.id)"
             />
             <span class="folder-name">{{ folder.name }}</span>
-            <span class="folder-count">({{ folder.chats.length }})</span>
           </div>
           <IconButton
             :icon="Trash"
@@ -77,10 +63,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { Plus, Trash, ChevronDown, ChevronRight } from "lucide-vue-next";
+import { Trash, FolderOpen, FolderClosed } from "lucide-vue-next";
 import type { Folder, Chat } from "@/shared/types";
 import IconButton from "./ui/IconButton.vue";
-import Button from "./ui/Button.vue";
 
 defineProps<{
   folders: Folder[];
@@ -88,7 +73,6 @@ defineProps<{
 }>();
 
 defineEmits<{
-  "create-folder": [];
   "select-folder": [folderId: string];
   "delete-folder": [folderId: string];
   "open-chat": [chat: Chat];

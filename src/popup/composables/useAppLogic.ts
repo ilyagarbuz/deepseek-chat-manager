@@ -130,8 +130,7 @@ export const useFolders = () => {
 export const useChats = () => {
   const openChat = (chat: Chat) => {
     if (chat.url) {
-      const url = `https://chat.deepseek.com${chat.url}`;
-      chrome.tabs.create({ url: url });
+      chrome.tabs.create({ url: chat.url });
     }
   };
 
