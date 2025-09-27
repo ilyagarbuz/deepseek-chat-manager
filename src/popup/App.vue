@@ -9,11 +9,6 @@
         @create-folder="createFolder"
         @select-folder="selectFolder"
         @delete-folder="deleteFolder"
-      />
-
-      <ChatsSection
-        :folders="folders"
-        :selected-folder="selectedFolder"
         @open-chat="openChat"
         @remove-chat="removeChatFromFolder"
       />
@@ -27,7 +22,6 @@
 import { onMounted } from "vue";
 import AppHeader from "./components/AppHeader.vue";
 import FoldersSection from "./components/FoldersSection.vue";
-import ChatsSection from "./components/ChatsSection.vue";
 import AppFooter from "./components/AppFooter.vue";
 import { useFolders, useChats, useTheme } from "./composables/useAppLogic";
 

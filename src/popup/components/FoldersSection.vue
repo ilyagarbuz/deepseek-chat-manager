@@ -17,29 +17,68 @@
       <div
         v-for="folder in folders"
         :key="folder.id"
-        class="folder-item"
+        class="folder-container"
         :class="{ active: selectedFolder === folder.id }"
-        :style="{ backgroundColor: folder.color || '#f3f4f6' }"
-        @click="$emit('select-folder', folder.id)"
       >
-        <span class="folder-name">{{ folder.name }}</span>
-        <!-- <span class="folder-count">({{ folder.chatCount }})</span> -->
-        <IconButton
-          :icon="Trash"
-          :size="14"
-          variant="danger"
-          circular
-          title="Delete folder"
-          @click="$emit('delete-folder', folder.id)"
-        />
+        <!-- Folder Header -->
+        <div
+          class="folder-item"
+          :style="{ backgroundColor: folder.color || '#f3f4f6' }"
+          @click="toggleFolder(folder.id)"
+        >
+          <div class="folder-header">
+            <IconButton
+              :icon="isExpanded(folder.id) ? ChevronDown : ChevronRight"
+              :size="14"
+              variant="default"
+              circular
+              title="Toggle folder"
+              @click.stop="toggleFolder(folder.id)"
+            />
+            <span class="folder-name">{{ folder.name }}</span>
+            <span class="folder-count">({{ folder.chats.length }})</span>
+          </div>
+          <IconButton
+            :icon="Trash"
+            :size="14"
+            variant="danger"
+            circular
+            title="Delete folder"
+            @click.stop="$emit('delete-folder', folder.id)"
+          />
+        </div>
+
+        <!-- Folder Chats -->
+        <div v-if="isExpanded(folder.id)" class="folder-chats">
+          <div v-for="chat in folder.chats" :key="chat.id" class="chat-item">
+            <div class="chat-content" @click="$emit('open-chat', chat)">
+              <span class="chat-title">{{ chat.title }}</span>
+            </div>
+            <div class="chat-actions">
+              <IconButton
+                :icon="Trash"
+                :size="14"
+                variant="danger"
+                circular
+                title="Remove from folder"
+                @click="$emit('remove-chat', chat.id)"
+              />
+            </div>
+          </div>
+
+          <div v-if="folder.chats.length === 0" class="empty-folder">
+            <span>No chats in this folder</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Plus, Trash } from "lucide-vue-next";
-import type { Folder } from "@/shared/types";
+import { ref } from "vue";
+import { Plus, Trash, ChevronDown, ChevronRight } from "lucide-vue-next";
+import type { Folder, Chat } from "@/shared/types";
 import IconButton from "./ui/IconButton.vue";
 import Button from "./ui/Button.vue";
 
@@ -52,7 +91,24 @@ defineEmits<{
   "create-folder": [];
   "select-folder": [folderId: string];
   "delete-folder": [folderId: string];
+  "open-chat": [chat: Chat];
+  "remove-chat": [chatId: string];
 }>();
+
+// Track expanded folders
+const expandedFolders = ref<Set<string>>(new Set());
+
+const toggleFolder = (folderId: string) => {
+  if (expandedFolders.value.has(folderId)) {
+    expandedFolders.value.delete(folderId);
+  } else {
+    expandedFolders.value.add(folderId);
+  }
+};
+
+const isExpanded = (folderId: string) => {
+  return expandedFolders.value.has(folderId);
+};
 </script>
 
 <style scoped>
@@ -80,13 +136,28 @@ defineEmits<{
   gap: 8px;
 }
 
+.folder-container {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.folder-container:hover {
+  border-color: var(--deepseek-primary-static);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.folder-container.active {
+  border-color: var(--deepseek-primary-static);
+}
+
 .folder-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 12px;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
   opacity: 0.8;
@@ -96,17 +167,14 @@ defineEmits<{
   opacity: 1;
 }
 
-.folder-item:hover {
-  border-color: var(--deepseek-primary-static);
-  box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-.folder-item.active {
-  border-color: var(--deepseek-primary-static);
+.folder-header {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 8px;
 }
 
 .folder-name {
-  flex: 1;
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -114,6 +182,59 @@ defineEmits<{
 .folder-count {
   color: var(--text-secondary);
   font-size: 12px;
-  margin-right: 8px;
+}
+
+.folder-chats {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  padding: 8px;
+}
+
+.chat-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+
+.chat-item:last-child {
+  margin-bottom: 0;
+}
+
+.chat-item:hover {
+  border-color: var(--deepseek-primary-static);
+  box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.chat-content {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-title {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.empty-folder {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: italic;
 }
 </style>
