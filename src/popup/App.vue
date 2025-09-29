@@ -13,6 +13,7 @@
         :selected-folder="selectedFolder"
         @select-folder="selectFolder"
         @delete-folder="deleteFolder"
+        @rename-folder="renameFolder"
         @open-chat="openChat"
         @remove-chat="removeChatFromFolder"
       />
@@ -30,7 +31,12 @@ import { onMounted, ref } from "vue";
 import AppHeader from "./components/AppHeader.vue";
 import FoldersSection from "./components/FoldersSection.vue";
 import AppFooter from "./components/AppFooter.vue";
-import { useFolders, useChats, useTheme } from "./composables/useAppLogic";
+import {
+  useFolders,
+  useChats,
+  useTheme,
+  useSync,
+} from "./composables/useAppLogic";
 
 // Use composables for logic
 const {
@@ -39,6 +45,7 @@ const {
   loadFolders,
   createFolder,
   deleteFolder,
+  renameFolder,
   selectFolder,
   removeChatFromFolder,
 } = useFolders();
@@ -46,6 +53,8 @@ const {
 const { openChat } = useChats();
 
 const { currentTheme, loadTheme, toggleTheme } = useTheme();
+
+const { loadSyncStatus } = useSync();
 
 const isShowFooter = ref(true);
 
@@ -56,6 +65,7 @@ const toggleFooter = () => {
 onMounted(async () => {
   await loadFolders();
   await loadTheme();
+  await loadSyncStatus();
 });
 </script>
 

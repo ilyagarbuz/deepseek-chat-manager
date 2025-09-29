@@ -31,7 +31,27 @@ class BackgroundManager {
 
   private async loadData() {
     try {
-      const result = await chrome.storage.local.get(["folders", "theme"]);
+      // Try to load from sync storage first, fallback to local
+      let result = await chrome.storage.sync.get(["folders", "theme"]);
+
+      // If no data in sync storage, try local storage and migrate
+      if (!result.folders && !result.theme) {
+        const localResult = await chrome.storage.local.get([
+          "folders",
+          "theme",
+        ]);
+        if (localResult.folders || localResult.theme) {
+          console.log("Migrating data from local to sync storage");
+          await chrome.storage.sync.set({
+            folders: localResult.folders || [],
+            theme: localResult.theme || "system",
+          });
+          // Clear local storage after migration
+          await chrome.storage.local.remove(["folders", "theme"]);
+          result = localResult;
+        }
+      }
+
       this.folders = result.folders || [];
       this.theme = result.theme || "system";
 
@@ -44,6 +64,18 @@ class BackgroundManager {
       );
     } catch (error) {
       console.error("Error loading data:", error);
+      // Fallback to local storage if sync fails
+      try {
+        const localResult = await chrome.storage.local.get([
+          "folders",
+          "theme",
+        ]);
+        this.folders = localResult.folders || [];
+        this.theme = localResult.theme || "system";
+        console.log("Fallback to local storage successful");
+      } catch (localError) {
+        console.error("Error loading from local storage:", localError);
+      }
     }
   }
 
@@ -96,6 +128,11 @@ class BackgroundManager {
           sendResponse({ success: true });
           break;
 
+        case "RENAME_FOLDER":
+          await this.renameFolder(message.folderId, message.newName);
+          sendResponse({ success: true });
+          break;
+
         case "ADD_CHAT_TO_FOLDER":
           await this.addChatToFolder(message.chat, message.folderId);
           sendResponse({ success: true });
@@ -115,6 +152,11 @@ class BackgroundManager {
           sendResponse({ success: true });
           break;
 
+        case "GET_SYNC_STATUS":
+          const syncStatus = await this.getSyncStatus();
+          sendResponse(syncStatus);
+          break;
+
         default:
           console.warn("Unknown message type:", (message as any).type);
           sendResponse({ error: "Unknown message type" });
@@ -131,7 +173,8 @@ class BackgroundManager {
     changes: { [key: string]: chrome.storage.StorageChange },
     namespace: string
   ) {
-    if (namespace !== "local") return;
+    // Handle both sync and local storage changes
+    if (namespace !== "sync" && namespace !== "local") return;
 
     if (changes.folders) {
       this.folders = changes.folders.newValue || [];
@@ -140,7 +183,7 @@ class BackgroundManager {
         0
       );
       console.log(
-        "Folders updated:",
+        `Folders updated from ${namespace}:`,
         this.folders.length,
         "chats:",
         totalChats
@@ -149,7 +192,7 @@ class BackgroundManager {
 
     if (changes.theme) {
       this.theme = changes.theme.newValue || "system";
-      console.log("Theme changed to:", this.theme);
+      console.log(`Theme changed to: ${this.theme} (from ${namespace})`);
 
       // Notify all tabs about theme change
       this.notifyTabsAboutThemeChange();
@@ -215,7 +258,7 @@ class BackgroundManager {
     };
 
     this.folders = [defaultFolder];
-    await chrome.storage.local.set({
+    await this.saveToSyncStorage({
       folders: this.folders,
       theme: "system",
     });
@@ -224,6 +267,53 @@ class BackgroundManager {
   private async migrateData() {
     // Data migration logic on update
     console.log("Migrating data...");
+
+    // Check if we need to migrate from local to sync storage
+    try {
+      const syncData = await chrome.storage.sync.get(["folders", "theme"]);
+      const localData = await chrome.storage.local.get(["folders", "theme"]);
+
+      // If sync storage is empty but local has data, migrate
+      if (
+        !syncData.folders &&
+        !syncData.theme &&
+        (localData.folders || localData.theme)
+      ) {
+        console.log("Migrating data from local to sync storage during update");
+        await chrome.storage.sync.set({
+          folders: localData.folders || [],
+          theme: localData.theme || "system",
+        });
+        // Clear local storage after migration
+        await chrome.storage.local.remove(["folders", "theme"]);
+        console.log("Migration completed");
+      }
+    } catch (error) {
+      console.error("Error during data migration:", error);
+    }
+  }
+
+  /**
+   * Saves data to sync storage with fallback to local storage
+   */
+  private async saveToSyncStorage(data: {
+    folders?: Folder[];
+    theme?: Theme;
+  }): Promise<void> {
+    try {
+      await chrome.storage.sync.set(data);
+      console.log("Data saved to sync storage");
+    } catch (error) {
+      console.error("Error saving to sync storage:", error);
+      // Fallback to local storage if sync fails
+      try {
+        await chrome.storage.local.set(data);
+        console.log("Data saved to local storage as fallback");
+      } catch (localError) {
+        console.error("Error saving to local storage:", localError);
+        throw localError;
+      }
+    }
   }
 
   private async createFolder(name: string): Promise<Folder> {
@@ -237,14 +327,24 @@ class BackgroundManager {
     };
 
     this.folders.push(newFolder);
-    await chrome.storage.local.set({ folders: this.folders });
+    await this.saveToSyncStorage({ folders: this.folders });
 
     return newFolder;
   }
 
   private async deleteFolder(folderId: string): Promise<void> {
     this.folders = this.folders.filter((f) => f.id !== folderId);
-    await chrome.storage.local.set({ folders: this.folders });
+    await this.saveToSyncStorage({ folders: this.folders });
+  }
+
+  private async renameFolder(folderId: string, newName: string): Promise<void> {
+    const folder = this.folders.find((f) => f.id === folderId);
+    if (!folder) {
+      throw new Error("Folder not found");
+    }
+
+    folder.name = newName.trim();
+    await this.saveToSyncStorage({ folders: this.folders });
   }
 
   private async addChatToFolder(chat: Chat, folderId: string): Promise<void> {
@@ -256,7 +356,7 @@ class BackgroundManager {
     if (!existingChat) {
       folder.chats.push(chat);
       folder.chatCount = folder.chats.length;
-      await chrome.storage.local.set({ folders: this.folders });
+      await this.saveToSyncStorage({ folders: this.folders });
     }
   }
 
@@ -269,7 +369,7 @@ class BackgroundManager {
 
     folder.chats = folder.chats.filter((chat) => chat.id !== chatId);
     folder.chatCount = folder.chats.length;
-    await chrome.storage.local.set({ folders: this.folders });
+    await this.saveToSyncStorage({ folders: this.folders });
   }
 
   private setupPeriodicSync() {
@@ -282,16 +382,57 @@ class BackgroundManager {
   private async performPeriodicSync() {
     console.log("Performing periodic sync...");
 
-    // Here you can add logic for synchronization with external sources
-    // or cleanup of outdated data
+    try {
+      // Check sync storage quota and status
+      const syncQuota = await chrome.storage.sync.getBytesInUse();
+      const maxQuota = chrome.storage.sync.QUOTA_BYTES;
+
+      console.log(`Sync storage usage: ${syncQuota}/${maxQuota} bytes`);
+
+      if (syncQuota > maxQuota * 0.9) {
+        console.warn("Sync storage is nearly full, consider cleanup");
+      }
+
+      // Verify data integrity
+      const syncData = await chrome.storage.sync.get(["folders", "theme"]);
+      if (syncData.folders && Array.isArray(syncData.folders)) {
+        console.log(
+          `Sync verification: ${syncData.folders.length} folders in sync storage`
+        );
+      }
+    } catch (error) {
+      console.error("Error during periodic sync:", error);
+    }
   }
 
   private async setTheme(theme: Theme): Promise<void> {
     this.theme = theme;
-    await chrome.storage.local.set({ theme: this.theme });
+    await this.saveToSyncStorage({ theme: this.theme });
 
     // Notify all tabs about theme change
     this.notifyTabsAboutThemeChange();
+  }
+
+  private async getSyncStatus() {
+    try {
+      const quotaUsed = await chrome.storage.sync.getBytesInUse();
+      const quotaMax = chrome.storage.sync.QUOTA_BYTES;
+
+      return {
+        syncEnabled: true,
+        quotaUsed,
+        quotaMax,
+        lastSyncTime: new Date(),
+      };
+    } catch (error) {
+      console.error("Error getting sync status:", error);
+      return {
+        syncEnabled: false,
+        quotaUsed: 0,
+        quotaMax: 0,
+        error: "Failed to get sync status",
+      };
+    }
   }
 
   private async notifyTabsAboutThemeChange(): Promise<void> {

@@ -54,10 +54,11 @@ export class FolderManager {
    */
   setupStorageListener(): void {
     chrome.storage.onChanged.addListener((changes, namespace) => {
-      if (namespace !== "local") return;
+      // Listen to both sync and local storage changes
+      if (namespace !== "sync" && namespace !== "local") return;
 
       if (changes.folders) {
-        console.log("Storage: Detected folder changes");
+        console.log(`Storage: Detected folder changes from ${namespace}`);
         const newFolders = changes.folders.newValue || [];
 
         // Проверяем, действительно ли папки изменились
@@ -68,7 +69,7 @@ export class FolderManager {
             type: "FOLDERS_CHANGED",
             folders: this.folders,
           });
-          console.log("Storage: Folders updated");
+          console.log(`Storage: Folders updated from ${namespace}`);
         }
       }
     });

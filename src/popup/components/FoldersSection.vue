@@ -24,14 +24,24 @@
             />
             <span class="folder-name">{{ folder.name }}</span>
           </div>
-          <IconButton
-            :icon="Trash"
-            :size="14"
-            variant="danger"
-            circular
-            title="Delete folder"
-            @click.stop="$emit('delete-folder', folder.id)"
-          />
+          <div class="folder-actions">
+            <IconButton
+              :icon="Edit"
+              :size="14"
+              variant="default"
+              circular
+              title="Rename folder"
+              @click.stop="$emit('rename-folder', folder.id)"
+            />
+            <IconButton
+              :icon="Trash"
+              :size="14"
+              variant="danger"
+              circular
+              title="Delete folder"
+              @click.stop="$emit('delete-folder', folder.id)"
+            />
+          </div>
         </div>
 
         <!-- Folder Chats -->
@@ -63,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { Trash, FolderOpen, FolderClosed } from "lucide-vue-next";
+import { Trash, FolderOpen, FolderClosed, Edit } from "lucide-vue-next";
 import type { Folder, Chat } from "@/shared/types";
 import IconButton from "./ui/IconButton.vue";
 
@@ -75,6 +85,7 @@ defineProps<{
 defineEmits<{
   "select-folder": [folderId: string];
   "delete-folder": [folderId: string];
+  "rename-folder": [folderId: string];
   "open-chat": [chat: Chat];
   "remove-chat": [chatId: string, folderId: string];
 }>();
@@ -161,6 +172,12 @@ const isExpanded = (folderId: string) => {
 .folder-name {
   font-weight: 500;
   color: var(--text-primary);
+}
+
+.folder-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .folder-count {

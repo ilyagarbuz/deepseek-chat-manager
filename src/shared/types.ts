@@ -41,6 +41,12 @@ export interface DeleteFolderMessage extends BaseMessage {
   folderId: string;
 }
 
+export interface RenameFolderMessage extends BaseMessage {
+  type: "RENAME_FOLDER";
+  folderId: string;
+  newName: string;
+}
+
 export interface AddChatToFolderMessage extends BaseMessage {
   type: "ADD_CHAT_TO_FOLDER";
   chat: Chat;
@@ -62,14 +68,20 @@ export interface SetThemeMessage extends BaseMessage {
   theme: Theme;
 }
 
+export interface GetSyncStatusMessage extends BaseMessage {
+  type: "GET_SYNC_STATUS";
+}
+
 export type ExtensionMessage =
   | GetFoldersMessage
   | CreateFolderMessage
   | DeleteFolderMessage
+  | RenameFolderMessage
   | AddChatToFolderMessage
   | RemoveChatFromFolderMessage
   | GetThemeMessage
-  | SetThemeMessage;
+  | SetThemeMessage
+  | GetSyncStatusMessage;
 
 // Response types from background script
 export interface BaseResponse {
@@ -89,8 +101,16 @@ export interface ThemeResponse extends BaseResponse {
   theme: Theme;
 }
 
+export interface SyncStatusResponse extends BaseResponse {
+  syncEnabled: boolean;
+  quotaUsed: number;
+  quotaMax: number;
+  lastSyncTime?: Date;
+}
+
 export type ExtensionResponse =
   | FoldersResponse
   | FolderResponse
   | ThemeResponse
+  | SyncStatusResponse
   | BaseResponse;

@@ -5,6 +5,7 @@ import type {
   Theme,
   ExtensionMessage,
   ExtensionResponse,
+  SyncStatusResponse,
 } from "@/shared/types";
 
 // Function for sending messages to background script
@@ -74,6 +75,28 @@ export const useFolders = () => {
     }
   };
 
+  const renameFolder = async (folderId: string) => {
+    const folder = folders.value.find((f) => f.id === folderId);
+    if (!folder) return;
+
+    const newName = prompt("Enter new folder name:", folder.name);
+    if (!newName || newName.trim() === folder.name) return;
+
+    try {
+      await sendMessage({
+        type: "RENAME_FOLDER",
+        folderId,
+        newName: newName.trim(),
+      });
+
+      // Update local state
+      folder.name = newName.trim();
+    } catch (error) {
+      console.error("Error renaming folder:", error);
+      alert("Failed to rename folder");
+    }
+  };
+
   const selectFolder = (folderId: string) => {
     selectedFolder.value = selectedFolder.value === folderId ? null : folderId;
   };
@@ -116,6 +139,7 @@ export const useFolders = () => {
     loadFolders,
     createFolder,
     deleteFolder,
+    renameFolder,
     selectFolder,
     getFolderName,
     getFolderChats,
@@ -212,5 +236,74 @@ export const useTheme = () => {
     applyTheme,
     getThemeIcon,
     getThemeTitle,
+  };
+};
+
+export const useSync = () => {
+  const syncStatus = ref<{
+    syncEnabled: boolean;
+    quotaUsed: number;
+    quotaMax: number;
+    lastSyncTime?: Date;
+  }>({
+    syncEnabled: false,
+    quotaUsed: 0,
+    quotaMax: 0,
+  });
+
+  const loadSyncStatus = async () => {
+    try {
+      const response = await sendMessage<SyncStatusResponse>({
+        type: "GET_SYNC_STATUS",
+      });
+
+      if (response.error) {
+        console.error("Error loading sync status:", response.error);
+        return;
+      }
+
+      syncStatus.value = {
+        syncEnabled: response.syncEnabled,
+        quotaUsed: response.quotaUsed,
+        quotaMax: response.quotaMax,
+        lastSyncTime: response.lastSyncTime,
+      };
+    } catch (error) {
+      console.error("Error loading sync status:", error);
+    }
+  };
+
+  const getSyncStatusText = (): string => {
+    if (!syncStatus.value.syncEnabled) {
+      return "Sync disabled";
+    }
+
+    const percentage = Math.round(
+      (syncStatus.value.quotaUsed / syncStatus.value.quotaMax) * 100
+    );
+    return `Sync enabled (${percentage}% used)`;
+  };
+
+  const getSyncStatusIcon = (): string => {
+    if (!syncStatus.value.syncEnabled) {
+      return "❌";
+    }
+
+    const percentage =
+      (syncStatus.value.quotaUsed / syncStatus.value.quotaMax) * 100;
+    if (percentage > 90) {
+      return "⚠️";
+    } else if (percentage > 70) {
+      return "🟡";
+    } else {
+      return "✅";
+    }
+  };
+
+  return {
+    syncStatus,
+    loadSyncStatus,
+    getSyncStatusText,
+    getSyncStatusIcon,
   };
 };
