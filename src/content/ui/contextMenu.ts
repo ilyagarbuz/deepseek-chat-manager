@@ -51,11 +51,14 @@ export class ContextMenuService {
    * Добавляет контекстное меню к элементу чата
    */
   addContextMenuToChat(element: HTMLElement, chatId: string) {
+    console.log("adding context menu to chat", chatId, element);
+
     element.addEventListener("contextmenu", (e) => {
       e.preventDefault();
-      // получаем первый div и берем текст из него
+      // получаем второй div и берем текст из него
       const chatName =
-        element.querySelector("div")?.textContent?.trim() || chatId;
+        element.querySelector("div:nth-child(2)")?.textContent?.trim() ||
+        chatId;
       this.showContextMenu(e, chatId, chatName);
     });
   }
@@ -171,6 +174,7 @@ export class ContextMenuService {
     chatName: string,
     folderId: string
   ) {
+    console.log("Toggling chat in folder", chatId, chatName, folderId);
     // Проверяем, что folders является массивом
     if (!Array.isArray(this.folders)) {
       return;
